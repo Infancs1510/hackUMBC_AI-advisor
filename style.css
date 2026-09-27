@@ -445,6 +445,21 @@ body {
 }
 
 /* ---------- TOP HEADER ---------- */
+.popular-career {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid var(--theme-border);
+    border-left: 3px solid var(--accent-gold);
+    border-radius: 10px;
+    background-color: var(--card-bg);
+}
+
+.popular-career h3 { margin: 0 0 12px; color: var(--accent-warm); font-size: 14px; }
+.popular-career p { margin: 8px 0; color: var(--text-muted); }
+.popular-career #popular-career-title { color: var(--text-primary); font-size: 22px; font-weight: 600; }
+.popular-career strong { color: var(--accent-gold); }
+.popular-career small { color: var(--text-muted); }
+
 .site-header {
     display: flex;
     align-items: center;

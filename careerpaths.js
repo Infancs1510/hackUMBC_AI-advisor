@@ -67,10 +67,44 @@ const CareerPaths = (() => {
         }
     }
 
+    function renderPopularCareer(alumni) {
+        const groups = new Map();
+        for (const alum of alumni) {
+            const title = alum.first_job_title;
+            if (!title || title === "Not Applicable") continue;
+            if (!groups.has(title)) groups.set(title, []);
+            groups.get(title).push(alum);
+        }
+        const ranked = [...groups].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+        const titleElement = document.getElementById("popular-career-title");
+        const salaryElement = document.getElementById("popular-career-salary");
+        const detailElement = document.getElementById("popular-career-detail");
+        if (!ranked.length) {
+            titleElement.textContent = "No reported careers for this major";
+            salaryElement.textContent = "Not available";
+            detailElement.textContent = "No first-job outcomes are available.";
+            return;
+        }
+        const [title, records] = ranked[0];
+        const salaries = records.map(alum => Number(alum.first_job_annual_salary_usd))
+            .filter(salary => Number.isFinite(salary) && salary > 0);
+        const currency = new Intl.NumberFormat("en-US", {
+            style: "currency", currency: "USD", maximumFractionDigits: 0
+        });
+        titleElement.textContent = title;
+        salaryElement.textContent = salaries.length
+            ? `${currency.format(Math.min(...salaries))} – ${currency.format(Math.max(...salaries))}`
+            : "Not reported";
+        const tied = ranked.filter(([, rows]) => rows.length === records.length).length > 1;
+        detailElement.textContent = `${records.length} alumni with your major · ${salaries.length} reported salaries. First-job annual pay, not adjusted for inflation.`
+            + (tied ? " Tied for most popular; shown alphabetically." : "");
+    }
+
     function render(csv, student) {
         // Current students has a major, but no degree_level: show and label all
         // alumni degree levels for that major instead of assuming a degree.
         const alumni = parseCSV(csv).filter(alum => alum.major === student.major);
+        renderPopularCareer(alumni);
         document.getElementById("career-paths-summary").textContent =
             `${student.major} · Based on ${alumni.length} alumni with your major, across all tracks and degree levels.`;
         fillList("career-paths-list", alumni, "first_job_title", student.major);
@@ -78,6 +112,9 @@ const CareerPaths = (() => {
     }
 
     function showError(message) {
+        document.getElementById("popular-career-title").textContent = "Career data unavailable";
+        document.getElementById("popular-career-salary").textContent = "--";
+        document.getElementById("popular-career-detail").textContent = "";
         document.getElementById("career-paths-summary").textContent = "Career paths unavailable. " + message;
         document.getElementById("career-paths-list").replaceChildren();
         document.getElementById("career-companies-list").replaceChildren();
