@@ -26,7 +26,7 @@
   function navLink(item, active) {
     const href = item.href ? item.href + apiQuery() : "#";
     if (item.key === active) {
-      return `<a aria-current="page" class="flex items-center gap-space-md px-space-md py-2.5 rounded-lg transition-colors bg-surface-container-high text-primary font-bold shadow-[inset_3px_0_0_0_#ffb300]" href="${href}"><span class="material-symbols-outlined text-body-lg text-primary">${item.icon}</span><span>${esc(item.label)}</span></a>`;
+      return `<a aria-current="page" class="flex items-center gap-space-md px-space-md py-2.5 rounded-lg transition-colors bg-surface-container-high text-primary font-bold shadow-[inset_3px_0_0_0_rgb(var(--c-primary-container))]" href="${href}"><span class="material-symbols-outlined text-body-lg text-primary">${item.icon}</span><span>${esc(item.label)}</span></a>`;
     }
     return `<a ${item.href ? "" : "data-soon"} class="flex items-center gap-space-md px-space-md py-2.5 rounded-lg text-body-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="${href}"><span class="material-symbols-outlined text-body-lg text-on-surface-variant">${item.icon}</span><span>${esc(item.label)}</span>${item.href ? "" : `<span class="ml-auto text-[10px] font-label-code text-outline">SOON</span>`}</a>`;
   }
@@ -36,7 +36,7 @@
     if (!session) return null;
 
     $("shell").innerHTML = `
-      <aside id="shell-aside" class="hidden lg:flex fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex-col justify-between border-r border-surface-container shadow-[0_4px_24px_rgba(0,0,0,0.6)]">
+      <aside id="shell-aside" class="hidden lg:flex fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex-col justify-between border-r border-surface-container shadow-[0_4px_24px_rgb(var(--c-shadow)/0.35)]">
         <div class="flex flex-col">
           <div class="px-space-md py-space-sm bg-surface-container-low flex items-center justify-between border-b border-surface-container">
             <span class="font-label-code text-label-code text-secondary tracking-wider font-semibold">STUDENT PORTAL</span>
@@ -59,7 +59,7 @@
         </div>
       </aside>
 
-      <header id="shell-header" class="fixed top-0 left-0 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl z-50 border-b border-surface-container shadow-[0_2px_16px_rgba(0,0,0,0.5)]">
+      <header id="shell-header" class="fixed top-0 left-0 right-0 h-16 bg-surface-container-lowest/95 backdrop-blur-xl z-50 border-b border-surface-container shadow-[0_2px_16px_rgb(var(--c-shadow)/0.3)]">
         <div class="w-full h-16 px-space-md md:px-space-lg flex items-center justify-between gap-3">
           <div class="flex items-center gap-4 min-w-0">
             <img alt="UMBC" class="h-8 object-contain" src="${IMG.logo}">
@@ -87,6 +87,7 @@
                 <span class="text-[11px] text-on-surface-variant leading-tight" id="hdr-sub">&nbsp;</span>
               </div>
             </div>
+            ${Theme.buttonHtml("w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors")}
             <button id="logout" class="flex items-center gap-space-xs px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors font-label-code text-label-code font-medium border border-outline-variant/30" type="button"><span class="material-symbols-outlined text-body-md text-error">logout</span><span class="hidden sm:inline">Sign out</span></button>
           </div>
         </div>
@@ -110,6 +111,7 @@
       </footer>`;
 
     $("logout").addEventListener("click", logout);
+    Theme.bind($("shell"));
     document.querySelectorAll("[data-soon]").forEach((a) => a.addEventListener("click", (e) => {
       e.preventDefault();
       toast(`${a.textContent.replace("SOON", "").trim()} is coming soon.`);

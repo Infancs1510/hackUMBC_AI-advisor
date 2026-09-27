@@ -4,7 +4,7 @@
 <title>UMBC Retriever Career Intelligence</title>
 <link href="https://fonts.googleapis.com" rel="preconnect">
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Geist:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
@@ -56,6 +56,8 @@
       }
     }
     ::-webkit-scrollbar { display: none; }
+    .login-card { font-family: "Geist", system-ui, sans-serif; }
+    .login-card input { font-size: 15px; }
     @keyframes pulseSlow { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 0.65; transform: scale(1.05); } }
     @keyframes floatNodes { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-5px); } }
     .animate-pulse-slow { animation: pulseSlow 8s ease-in-out infinite; }
@@ -139,101 +141,52 @@
 <circle cx="630" cy="350" fill="#FFB300" opacity="0.8" r="3"></circle>
 </svg>
 </div>
-<!-- 2. Central Hub -->
-<div class="w-full max-w-[460px] mx-auto flex flex-col items-center z-10 relative">
-<div class="relative mb-3 group">
-<div class="absolute -inset-2 bg-gradient-to-r from-amber-500/40 via-amber-400/40 to-amber-500/40 rounded-full blur-md group-hover:blur-lg transition-all duration-500"></div>
-<div class="relative w-[80px] h-[80px] rounded-full shadow-2xl border-2 border-amber-400/50 bg-[#0B0F19] p-2 flex items-center justify-center transform transition-all duration-300 group-hover:scale-105 overflow-hidden">
-<img alt="Retriever Mascot Logo" class="w-full h-full object-contain rounded-full drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYDVYSSoCDaCsbH0tTlY9snc035yvfnfTMSkyoap1cxHA-k_l8sQqriCdwVEtX59f_fWR6ZaV7y3aS1MS-SIqTHwjThKX4D0F4uJQnX-KbTKjP7TXYtroa4qFPlLlTOTerhYfm6GgL-ybLK6P9TzygTPX-lhtHeXmng4Q5lVOimalm0RGVP4gBc0wG99_tlwA9kRxIVu0PdZ5LWaYygSuitSZDTeVUEtqsfbucHJ_pV7ktj65VC7QrbNrlg0GstYewiwM">
-</div>
-</div>
-<div class="text-center mb-4">
-<h1 class="font-headline-lg text-2xl font-extrabold tracking-tight text-white mb-1">
-<span>Retriever Career </span>
-<span class="bg-gradient-to-r from-[#FDE047] via-[#FFB300] to-[#F59E0B] bg-clip-text text-transparent glow-gold-text">Intelligence</span>
-</h1>
-<p class="font-body-sm text-xs text-gray-300/85 max-w-sm mx-auto leading-relaxed">
-          Sign in to access AI-driven career pathing built on UMBC student and alumni outcomes.
-        </p>
-</div>
-<!-- Login Card -->
-<div class="w-full bg-[#111827]/90 backdrop-blur-xl rounded-2xl border border-amber-400/30 glow-box-gold relative overflow-hidden transition-all duration-300">
-<div class="h-[2px] w-full bg-gradient-to-r from-amber-600 via-amber-300 to-amber-500"></div>
-<div class="absolute top-2 left-2 w-2.5 h-2.5 border-t-2 border-l-2 border-amber-400/60 pointer-events-none"></div>
-<div class="absolute top-2 right-2 w-2.5 h-2.5 border-t-2 border-r-2 border-amber-400/60 pointer-events-none"></div>
-<div class="absolute bottom-2 left-2 w-2.5 h-2.5 border-b-2 border-l-2 border-amber-400/40 pointer-events-none"></div>
-<div class="absolute bottom-2 right-2 w-2.5 h-2.5 border-b-2 border-r-2 border-amber-400/40 pointer-events-none"></div>
-<div class="p-5 flex flex-col gap-3">
+<!-- 2. Login card -->
+<div class="w-full max-w-[460px] mx-auto z-10 relative">
+<img alt="UMBC Retriever logo" class="mx-auto mb-6 w-[108px] h-[108px] rounded-full border border-white/10 bg-[#0B0F19] p-2 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYDVYSSoCDaCsbH0tTlY9snc035yvfnfTMSkyoap1cxHA-k_l8sQqriCdwVEtX59f_fWR6ZaV7y3aS1MS-SIqTHwjThKX4D0F4uJQnX-KbTKjP7TXYtroa4qFPlLlTOTerhYfm6GgL-ybLK6P9TzygTPX-lhtHeXmng4Q5lVOimalm0RGVP4gBc0wG99_tlwA9kRxIVu0PdZ5LWaYygSuitSZDTeVUEtqsfbucHJ_pV7ktj65VC7QrbNrlg0GstYewiwM">
+<div class="login-card rounded-lg border border-white/10 bg-[#0F131D] shadow-xl shadow-black/40">
+<div class="px-6 pt-5">
+<h1 class="text-[22px] leading-7 font-semibold tracking-[-0.02em] text-white">Sign in</h1>
+<p class="mt-1 text-[14px] text-gray-400">Career planning built on UMBC student and alumni outcomes.</p>
 <!-- Role switch -->
-<div class="grid grid-cols-2 p-1 bg-[#0B0F19] rounded-xl border border-amber-500/25 relative gap-1 select-none mb-1" role="tablist">
-<button type="button" id="role-student-btn" data-role="student" role="tab" class="role-btn flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-label-md text-xs border transition-all cursor-pointer"><span class="material-symbols-outlined text-[16px]">school</span><div class="flex flex-col text-left leading-tight"><span>Student</span><span class="role-sub font-label-sm text-[9px] font-mono">Undergrad &amp; Grad</span></div></button>
-<button type="button" id="role-advisor-btn" data-role="advisor" role="tab" class="role-btn flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-label-md text-xs border transition-all cursor-pointer"><span class="material-symbols-outlined text-[16px]">manage_accounts</span><div class="flex flex-col text-left leading-tight"><span>Advisor / Staff</span><span class="role-sub font-label-sm text-[9px] font-mono">Faculty &amp; Admin</span></div></button>
+<div class="mt-4 flex gap-6 border-b border-white/10 select-none" role="tablist">
+<button type="button" id="role-student-btn" data-role="student" role="tab" class="role-btn -mb-px border-b-2 pb-2.5 text-[14px] tracking-[-0.01em] transition-colors cursor-pointer">Student</button>
+<button type="button" id="role-advisor-btn" data-role="advisor" role="tab" class="role-btn -mb-px border-b-2 pb-2.5 text-[14px] tracking-[-0.01em] transition-colors cursor-pointer">Advisor / Staff</button>
 </div>
-<button id="sso-btn" class="w-full py-2.5 px-4 bg-[#1E2536] hover:bg-[#283248] text-white border border-amber-400/40 hover:border-amber-400/80 rounded-xl shadow-md hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] transition-all duration-200 flex items-center justify-between cursor-pointer group" type="button">
-<div class="flex items-center gap-3">
-<div class="w-7 h-7 rounded-lg bg-[#07090E] border border-amber-400/40 p-0.5 flex items-center justify-center overflow-hidden flex-shrink-0">
-<img alt="" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD95ZEVzVHUA0Dq8FJAvwus1lqCw6EUdO34IEi2SOrqXR_hysN11-AfCwumNLPPybesP5R04qtI1FOjaemfJC9cOxdmOPaF4AmnNMUYA3sBO5u7r1j2SUohbnMpMRrKqrGpeXB-O4dNEOMgUWj5G10Hxjznn77DZGk_HONDYb6sD28H_rUSfARpz-RByuHa2JL9YJj3hR-Hv88XGErXuq5jjEXDNeyOOZFrbqWfvacs7MDz1crwQstaEiEcnveI_-nkCjE">
-</div>
-<span class="font-label-md text-xs font-bold tracking-wide text-amber-200 group-hover:text-amber-100">Continue with myUMBC SSO</span>
-</div>
-<span class="material-symbols-outlined text-[18px] text-amber-400 group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
-</button>
-<div class="relative flex items-center justify-center my-0.5">
-<div class="w-full h-px bg-gradient-to-r from-transparent via-gray-700/70 to-transparent"></div>
-<span class="absolute bg-[#111827] px-3 font-label-sm text-[9.5px] text-gray-400 uppercase tracking-widest border border-amber-500/10 rounded-full">
-              or campus login
-            </span>
 </div>
 <!-- Form -->
-<form id="login-form" class="flex flex-col gap-3.5" novalidate>
-<div class="flex flex-col gap-1">
-<label class="font-label-md text-xs font-semibold text-gray-200 flex items-center justify-between" for="campus-id"><span id="role-id-label">Campus ID</span><span id="role-id-hint" class="font-label-sm text-[9px] text-amber-300/80 font-mono">e.g. CID-116490</span></label>
-<div class="relative flex items-center group">
-<span class="material-symbols-outlined absolute left-3 text-amber-400/70 group-focus-within:text-amber-300 text-[18px] pointer-events-none transition-colors">badge</span>
-<input autocomplete="username" class="w-full pl-10 pr-3 py-2 bg-[#0B0F19]/90 text-white font-body-md text-xs rounded-xl border border-amber-500/25 placeholder:text-gray-500/80 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all duration-200" id="campus-id" name="campus-id" placeholder="CID-123456" type="text" required>
+<form id="login-form" class="px-6 pt-5 pb-5 flex flex-col gap-4" novalidate>
+<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between">
+<label id="role-id-label" class="text-[13px] font-medium text-gray-300" for="campus-id">Campus ID</label>
+<span id="role-id-hint" class="text-xs text-gray-500">e.g. CID-116490</span>
+</div>
+<input autocomplete="username" class="h-10 w-full px-3 bg-[#07090E] text-white text-sm rounded-md border border-white/15 placeholder:text-gray-600 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-colors" id="campus-id" name="campus-id" placeholder="CID-123456" type="text" required>
+</div>
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between">
+<label class="text-[13px] font-medium text-gray-300" for="password">Password</label>
+<a id="forgot" class="text-xs text-gray-400 hover:text-amber-300 hover:underline" href="#">Forgot password?</a>
+</div>
+<div class="relative">
+<input autocomplete="current-password" class="h-10 w-full pl-3 pr-16 bg-[#07090E] text-white text-sm rounded-md border border-white/15 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-colors" id="password" name="password" type="password" required>
+<button aria-label="Show password" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-gray-400 hover:text-white rounded cursor-pointer" id="toggle-password" type="button">Show</button>
 </div>
 </div>
-<div class="flex flex-col gap-1">
-<div class="flex items-center justify-between">
-<label class="font-label-md text-xs font-semibold text-gray-200" for="password">Password</label>
-<a id="forgot" class="font-label-sm text-[10.5px] text-amber-400 hover:text-amber-300 transition-colors tracking-wide hover:underline" href="#">Forgot password?</a>
-</div>
-<div class="relative flex items-center group">
-<span class="material-symbols-outlined absolute left-3 text-amber-400/70 group-focus-within:text-amber-300 text-[18px] pointer-events-none transition-colors">lock</span>
-<input autocomplete="current-password" class="w-full pl-10 pr-10 py-2 bg-[#0B0F19]/90 text-white font-body-md text-xs rounded-xl border border-amber-500/25 placeholder:text-gray-500/80 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all duration-200" id="password" name="password" placeholder="••••••••••••" type="password" required>
-<button aria-label="Toggle password visibility" class="absolute right-2 p-1 text-gray-400 hover:text-amber-300 rounded-lg transition-colors flex items-center justify-center cursor-pointer" id="toggle-password" type="button">
-<span class="material-symbols-outlined text-[17px]" id="toggle-icon">visibility</span>
-</button>
-</div>
-</div>
-<div class="flex items-center justify-between pt-0.5">
-<label class="inline-flex items-center gap-2 cursor-pointer select-none">
-<input id="remember" class="w-3.5 h-3.5 rounded border-amber-500/30 bg-[#0B0F19] text-amber-500 focus:ring-amber-400/30 focus:ring-offset-0" type="checkbox">
-<span class="text-xs text-gray-300 font-body-sm">Remember this workstation</span>
-</label>
-<span class="font-label-sm text-[9.5px] text-gray-400 font-mono">8-hour session</span>
 </div>
 <!-- Messages (errors and notices) -->
-<div id="message" role="alert" class="hidden text-xs rounded-xl px-3 py-2 border"></div>
-<button id="submit-btn" class="w-full mt-1 py-2.5 px-4 bg-gradient-to-r from-[#FFD13B] via-[#FFB300] to-[#D97706] hover:from-[#FFE066] hover:via-[#FFC021] hover:to-[#EA8A0C] text-[#07090E] font-label-lg font-bold text-xs tracking-wide rounded-xl glow-btn-gold transition-all duration-300 flex items-center justify-center gap-2 group cursor-pointer active:scale-[0.99] disabled:opacity-60 disabled:cursor-wait" type="submit"><span id="submit-btn-text">Access Student Matrix</span><span class="material-symbols-outlined text-[16px] font-bold group-hover:translate-x-1 transition-transform">arrow_forward</span></button>
+<div id="message" role="alert" class="hidden"></div>
+<div class="flex flex-col gap-4">
+<label class="inline-flex items-center gap-2 cursor-pointer select-none">
+<input id="remember" class="w-4 h-4 rounded border-white/20 bg-[#07090E] text-amber-500 focus:ring-amber-400/30 focus:ring-offset-0" type="checkbox">
+<span class="text-sm text-gray-300">Keep me signed in</span>
+</label>
+<button id="submit-btn" class="h-10 w-full rounded-md bg-[#FDB515] hover:bg-[#FFC53D] text-black text-[15px] font-semibold tracking-[-0.01em] transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-wait" type="submit"><span id="submit-btn-text">Sign in</span></button>
+</div>
 </form>
 </div>
-</div>
-<!-- Trust pills -->
-<div class="flex flex-wrap items-center justify-center gap-2 mt-3.5">
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#111827]/80 border border-amber-400/20 text-[10px] font-medium text-gray-300 backdrop-blur-sm">
-<span class="material-symbols-outlined text-[12px] text-amber-400">verified_user</span>
-          FERPA Compliant
-        </span>
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#111827]/80 border border-amber-400/20 text-[10px] font-medium text-gray-300 backdrop-blur-sm">
-<span class="material-symbols-outlined text-[12px] text-amber-400">hub</span>
-          Retriever Network
-        </span>
-<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#111827]/80 border border-amber-400/20 text-[10px] font-medium text-gray-300 backdrop-blur-sm">
-<span class="material-symbols-outlined text-[12px] text-amber-400">shield</span>
-          Division of IT Secured
-        </span>
-</div>
+<p class="mt-4 text-center text-xs text-gray-500">Demo build for HackUMBC. Accounts are provided by the backend.</p>
 </div>
 </main>
 <!-- 3. Footer -->
@@ -265,11 +218,11 @@
 
     // ---- Role switch ------------------------------------------------------------
     const ROLES = {
-      student: { label: "Campus ID", hint: "e.g. CID-116490", placeholder: "CID-123456", submit: "Access Student Matrix" },
-      advisor: { label: "Advisor username", hint: "e.g. advisor", placeholder: "advisor", submit: "Access Advisor Console" },
+      student: { label: "Campus ID", hint: "e.g. CID-116490", placeholder: "CID-123456", submit: "Sign in" },
+      advisor: { label: "Advisor username", hint: "e.g. advisor", placeholder: "advisor", submit: "Sign in" },
     };
-    const ACTIVE = ["bg-gradient-to-r", "from-amber-500/20", "via-amber-400/15", "to-transparent", "text-amber-300", "font-bold", "border-amber-400/50", "shadow-[0_0_12px_rgba(251,191,36,0.2)]"];
-    const INACTIVE = ["text-gray-400", "hover:text-gray-200", "font-medium", "border-transparent", "hover:border-amber-500/20"];
+    const ACTIVE = ["text-white", "font-semibold", "border-amber-400"];
+    const INACTIVE = ["text-gray-400", "hover:text-gray-200", "font-medium", "border-transparent"];
     let role = "student";
 
     function setRole(next) {
@@ -279,8 +232,6 @@
         btn.classList.remove(...ACTIVE, ...INACTIVE);
         btn.classList.add(...(on ? ACTIVE : INACTIVE));
         btn.setAttribute("aria-selected", String(on));
-        btn.querySelector(".material-symbols-outlined").className = `material-symbols-outlined text-[16px] ${on ? "text-amber-400" : "text-gray-400"}`;
-        btn.querySelector(".role-sub").className = `role-sub font-label-sm text-[9px] font-mono ${on ? "text-amber-300/70" : "text-gray-500"}`;
       });
       const r = ROLES[role];
       $("role-id-label").textContent = r.label;
@@ -296,14 +247,12 @@
     function showMessage(text, kind = "error") {
       const el = $("message");
       el.textContent = text;
-      el.className = "text-xs rounded-xl px-3 py-2 border " + (kind === "error"
+      el.className = "text-sm rounded-md px-3 py-2 border " + (kind === "error"
         ? "bg-red-500/10 border-red-400/40 text-red-200"
         : "bg-amber-400/10 border-amber-400/30 text-amber-100");
     }
     function hideMessage() { $("message").className = "hidden"; }
 
-    $("sso-btn").addEventListener("click", () =>
-      showMessage("myUMBC SSO isn't available in this demo. Use campus login below.", "info"));
     $("forgot").addEventListener("click", (e) => {
       e.preventDefault();
       showMessage("Demo accounts use shared passwords set by the backend (STUDENT_DEMO_PASSWORD / ADVISOR_PASSWORD in .env).", "info");
@@ -314,8 +263,8 @@
       e.preventDefault();
       const show = $("password").type === "password";
       $("password").type = show ? "text" : "password";
-      $("toggle-icon").textContent = show ? "visibility_off" : "visibility";
-      $("toggle-icon").classList.toggle("text-amber-400", show);
+      $("toggle-password").textContent = show ? "Hide" : "Show";
+      $("toggle-password").setAttribute("aria-label", show ? "Hide password" : "Show password");
     });
 
     // ---- API status pill --------------------------------------------------------

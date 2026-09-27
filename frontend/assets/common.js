@@ -92,8 +92,13 @@
       <span class="muted small">${esc(title || session.user.display_name)}</span>
       <span class="spacer"></span>
       <span class="status" id="status"></span>
+      ${window.Theme ? `<button id="theme-toggle" type="button">${Theme.get() === "light" ? "Dark" : "Light"} theme</button>` : ""}
       <button id="logout">Sign out</button>`;
     el.querySelector("#logout").addEventListener("click", logout);
+    el.querySelector("#theme-toggle")?.addEventListener("click", (e) => {
+      Theme.toggle();
+      e.currentTarget.textContent = `${Theme.get() === "light" ? "Dark" : "Light"} theme`;
+    });
     renderStatus(el.querySelector("#status"));
   }
 
