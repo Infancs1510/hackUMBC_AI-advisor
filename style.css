@@ -619,8 +619,27 @@ body {
 .sign-out-button:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
 .sign-out-button:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 3px; }
 
+.site-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 40px -150px -40px;
+    padding: 22px 36px;
+    border-top: 1px solid var(--theme-border);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.site-footer .footer-label {
+    font: 12px Consolas, monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
 @media (max-width: 1000px) {
     .site-header { margin: -24px -24px 24px; padding: 18px 24px; }
+    .site-footer { margin: 32px -24px -24px; padding: 20px; }
 }
 
 @media (max-width: 600px) {
