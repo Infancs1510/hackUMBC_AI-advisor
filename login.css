@@ -30,7 +30,6 @@ button { cursor: pointer; }
     gap: 24px;
     padding: 22px 36px;
     background: #0b0e16;
-    border-bottom: 1px solid var(--border);
 }
 .brand { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .brand img { width: 196px; height: auto; }
@@ -38,20 +37,22 @@ button { cursor: pointer; }
 .portal-badge { padding: 6px 10px; border-radius: 4px; background: var(--card); color: var(--warm); font-size: 13px; }
 .header-label, .footer-label { color: var(--muted); font: 12px Consolas, monospace; letter-spacing: 1px; text-transform: uppercase; }
 .header-label { white-space: nowrap; }
-main { flex: 1; width: 100%; max-width: 900px; margin: 0 auto; padding: 44px 24px; }
+main { flex: 1; width: 100%; max-width: 900px; margin: 0 auto; padding: 4px 24px 44px; }
 .login-intro { text-align: center; }
 .student-emblem {
     display: grid;
     place-items: center;
     width: 120px;
     height: 120px;
-    margin: 0 auto 22px;
+    margin: 0 auto 12px;
 }
 .student-emblem img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .eyebrow { color: var(--warm); font: 11px Consolas, monospace; letter-spacing: 2px; }
-h1 { margin: 12px 0; font-size: clamp(26px, 4vw, 34px); letter-spacing: -1px; }
+h1 { margin: 12px 0 4px; font-size: clamp(26px, 4vw, 34px); letter-spacing: -1px; }
 h1 span { color: var(--gold); }
-.login-intro > p:last-child { margin: 0 0 26px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+h1 .welcome-text { font-family: "Segoe UI", Arial, sans-serif; font-weight: 700; color: var(--text); }
+h1 .retriever-text { font-size: 1.2em; }
+.login-intro > p:last-child { margin: 0 0 22px; color: var(--muted); font-size: 15px; line-height: 1.7; }
 .login-card {
     max-width: 572px;
     margin: 0 auto;
@@ -105,7 +106,7 @@ footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16
     .brand img { width: 150px; }
     .brand-title { font-size: 17px; padding-left: 12px; }
     .header-label { display: none; }
-    main { padding: 32px 18px; }
+    main { padding: 0 18px 32px; }
     .login-card { padding: 22px; }
     footer { padding: 20px; }
 }
