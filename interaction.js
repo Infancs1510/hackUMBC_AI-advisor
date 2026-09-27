@@ -1,9 +1,10 @@
-const test_id = "CID-834634";
+const test_id = sessionStorage.getItem("campusID");
 
 document.getElementById("header-campus-id").textContent = test_id;
 
 const chatInput = document.querySelector("#chat-input");
 const sendButton = document.querySelector("#send-message");
+const quitButton = document.querySelector(".sign-out-button");
 
 fetch("data/students_current.csv")
     .then(response => {
@@ -238,3 +239,8 @@ fetch("data/students_current.csv")
             console.error(error);
         });
     }
+
+    quitButton.addEventListener("click", function() {
+        sessionStorage.removeItem("campusID");
+        window.location.href = "login.html";
+    });

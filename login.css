@@ -1,0 +1,115 @@
+/* Standalone login theme; dashboard styles and behavior are untouched. */
+:root {
+    --page: #0d111a;
+    --panel: #181c27;
+    --card: #1f222c;
+    --border: #2d2c33;
+    --text: #dedeea;
+    --muted: #bdb09d;
+    --gold: #ffb600;
+    --warm: #ffd18a;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+    background: radial-gradient(ellipse at 50% 45%, #ffb60008, transparent 55%), var(--page);
+    border-top: 3px solid var(--gold);
+}
+button, input { font: inherit; }
+button { cursor: pointer; }
+.login-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 36px;
+    background: #0b0e16;
+    border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.brand img { width: 196px; height: auto; }
+.brand-title { padding-left: 20px; border-left: 1px solid var(--border); font-size: 21px; font-weight: 600; }
+.portal-badge { padding: 6px 10px; border-radius: 4px; background: var(--card); color: var(--warm); font-size: 13px; }
+.header-label, .footer-label { color: var(--muted); font: 12px Consolas, monospace; letter-spacing: 1px; text-transform: uppercase; }
+.header-label { white-space: nowrap; }
+main { flex: 1; width: 100%; max-width: 620px; margin: 0 auto; padding: 44px 24px; }
+.login-intro { text-align: center; }
+.student-emblem {
+    display: grid;
+    place-items: center;
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 22px;
+    color: var(--gold);
+    border: 1px solid #ffb60066;
+    border-radius: 50%;
+    background: #ffb6000a;
+    box-shadow: 0 0 35px #ffb60014;
+}
+.student-emblem svg { width: 42px; height: 42px; }
+.eyebrow { color: var(--warm); font: 11px Consolas, monospace; letter-spacing: 2px; }
+h1 { margin: 12px 0; font-size: clamp(26px, 4vw, 34px); letter-spacing: -1px; }
+h1 span { color: var(--gold); }
+.login-intro > p:last-child { margin: 0 0 26px; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.login-card {
+    padding: 28px;
+    background: var(--panel);
+    border: 1px solid #ffb60045;
+    border-top: 3px solid var(--gold);
+    border-radius: 16px;
+    box-shadow: 0 16px 45px #00000030;
+}
+.student-tag { color: var(--warm); font: 11px Consolas, monospace; letter-spacing: 1.5px; }
+h2 { margin: 10px 0 6px; font-size: 23px; font-weight: 600; }
+.card-heading p { margin: 0 0 24px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.sign-in-button {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 600;
+}
+.field-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 14px; }
+.field-label > span { color: var(--muted); font: 11px Consolas, monospace; }
+.password-label { margin-top: 20px; }
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 13px 15px;
+    border: 1px solid #ffb60033;
+    border-radius: 9px;
+    background: #0b0e16;
+    color: var(--text);
+    caret-color: var(--gold);
+}
+input::placeholder { color: #96929a; }
+.text-button { padding: 0; border: 0; background: none; color: var(--warm); font-size: 12px; }
+.text-button:hover { text-decoration: underline; }
+.sign-in-button { border: 1px solid #ffd18a88; background: linear-gradient(110deg, #ffd447, #ffb600); color: #17130b; box-shadow: 0 4px 20px #ffb60015; }
+.sign-in-button:hover { filter: brightness(1.08); }
+#login-error { margin: 12px 0 0; color: #ffb4ab; font-size: 13px; line-height: 1.5; }
+#login-error:empty { display: none; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.portal-topics { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+.portal-topics span { padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; color: var(--muted); font-size: 11px; }
+footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding: 22px 36px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+@media (max-width: 700px) {
+    .login-header { padding: 18px 20px; }
+    .brand { gap: 12px; }
+    .brand img { width: 150px; }
+    .brand-title { font-size: 17px; padding-left: 12px; }
+    .header-label { display: none; }
+    main { padding: 32px 18px; }
+    .login-card { padding: 22px; }
+    .desktop-break { display: none; }
+    footer { padding: 20px; }
+}

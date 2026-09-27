@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Student Sign In | UMBC Career Advisor</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <header class="login-header">
+        <div class="brand">
+            <img src="umbc-logo.png" alt="UMBC" width="196" height="46">
+            <span class="brand-title">Career Advisor</span>
+            <span class="portal-badge">Academic &amp; Career Portal</span>
+        </div>
+        <span class="header-label">Student Portal</span>
+    </header>
+
+    <main>
+        <div class="login-intro">
+            <div class="student-emblem" aria-hidden="true">
+                <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m5 18 19-9 19 9-19 9-19-9Zm8 5v11c7 6 15 6 22 0V23M43 18v15"></path>
+                </svg>
+            </div>
+            <p class="eyebrow">YOUR NEXT CHAPTER STARTS HERE</p>
+            <h1>Welcome back, <span>Retriever.</span></h1>
+            <p>Explore your academic progress, discover career paths,<br class="desktop-break"> and see where your degree can take you.</p>
+        </div>
+
+        <section class="login-card" aria-labelledby="login-heading">
+            <div class="card-heading">
+                <span class="student-tag">STUDENT ACCESS</span>
+                <h2 id="login-heading">Sign in to your future</h2>
+                <p>Your academic and career outlook, all in one place.</p>
+            </div>
+
+            <form id="login-form">
+                <div class="field-label">
+                    <label for="campus-id">Campus ID</label>
+                    <span id="campus-id-hint">e.g. CID-116490</span>
+                </div>
+                <input id="campus-id" type="text" placeholder="CID-116490" autocomplete="username" aria-describedby="campus-id-hint login-error" spellcheck="false" required>
+
+                <button class="sign-in-button" type="submit">Login <span aria-hidden="true">→</span></button>
+                <p id="login-error" role="alert"></p>
+            </form>
+        </section>
+
+        <div class="portal-topics" aria-label="Explore in your student portal">
+            <span>Academic progress</span>
+            <span>Career pathways</span>
+            <span>Alumni insights</span>
+        </div>
+    </main>
+
+    <footer>
+        <span>University of Maryland, Baltimore County</span>
+        <span class="footer-label">HackUMBC · Student Career Advisor</span>
+    </footer>
+    <script src="login.js"></script>
+</body>
+</html>
