@@ -1,7 +1,7 @@
 // interaction.js supplies the student selected by test_id and its alumni CSV fetch.
 const CareerPaths = (() => {
     // Quoted CSV fields can contain commas, escaped quotes, and newlines.
-    function parseCSV(text) {
+    function parseCSV(text, requiredHeaders = ["major", "degree_level", "first_job_title", "first_employer"]) {
         const rows = [];
         let row = [];
         let field = "";
@@ -32,8 +32,8 @@ const CareerPaths = (() => {
         row.push(field.trim());
         if (row.some(value => value !== "")) rows.push(row);
         const headers = rows.shift() || [];
-        for (const name of ["major", "degree_level", "first_job_title", "first_employer"]) {
-            if (!headers.includes(name)) throw new Error("The alumni CSV is missing " + name + ".");
+        for (const name of requiredHeaders) {
+            if (!headers.includes(name)) throw new Error("The CSV is missing " + name + ".");
         }
         return rows.map(values => Object.fromEntries(headers.map((name, i) => [name, values[i] || ""])));
     }
@@ -100,11 +100,56 @@ const CareerPaths = (() => {
             + (tied ? " Tied for most popular; shown alphabetically." : "");
     }
 
+    async function renderInternships(alumni, major) {
+        const summary = document.getElementById("internships-summary");
+        const cards = document.getElementById("internship-cards");
+        cards.replaceChildren();
+        try {
+            const response = await fetch("data/student_experience.csv");
+            if (!response.ok) throw new Error("Unable to load internship records.");
+            const experiences = parseCSV(await response.text(),
+                ["campus_id", "experience_type", "experience_name", "organization", "industry"]);
+            const alumniIds = new Set(alumni.map(alum => alum.campus_id));
+            const internships = new Map();
+            for (const experience of experiences) {
+                if (experience.experience_type !== "Internship" || !alumniIds.has(experience.campus_id)) continue;
+                const key = JSON.stringify([experience.experience_name, experience.organization]);
+                if (!internships.has(key)) internships.set(key, { ...experience, alumni: new Set() });
+                internships.get(key).alumni.add(experience.campus_id);
+            }
+            const popular = [...internships.values()].sort((a, b) =>
+                b.alumni.size - a.alumni.size || a.experience_name.localeCompare(b.experience_name)
+                || a.organization.localeCompare(b.organization)).slice(0, 6);
+            summary.textContent = popular.length
+                ? `Explore ${popular.length} of the most common internships held by ${major} alumni.`
+                : `No alumni internships recorded for ${major}.`;
+            for (const internship of popular) {
+                const card = document.createElement("article");
+                card.className = "internship-card";
+                const industry = document.createElement("span");
+                industry.className = "internship-industry";
+                industry.textContent = internship.industry === "Not Applicable" ? "Internship" : internship.industry;
+                const title = document.createElement("h3");
+                title.textContent = internship.experience_name;
+                const company = document.createElement("p");
+                company.textContent = internship.organization;
+                const count = document.createElement("small");
+                count.textContent = `${internship.alumni.size} ${internship.alumni.size === 1 ? "alum" : "alumni"} with your major`;
+                card.append(industry, title, company, count);
+                cards.appendChild(card);
+            }
+        } catch (error) {
+            summary.textContent = "Internships unavailable. Please reload to try again.";
+            console.error(error);
+        }
+    }
+
     function render(csv, student) {
         // Current students has a major, but no degree_level: show and label all
         // alumni degree levels for that major instead of assuming a degree.
         const alumni = parseCSV(csv).filter(alum => alum.major === student.major);
         renderPopularCareer(alumni);
+        renderInternships(alumni, student.major);
         document.getElementById("career-paths-summary").textContent =
             `${student.major} · Based on ${alumni.length} alumni with your major, across all tracks and degree levels.`;
         fillList("career-paths-list", alumni, "first_job_title", student.major);
@@ -112,6 +157,8 @@ const CareerPaths = (() => {
     }
 
     function showError(message) {
+        document.getElementById("internships-summary").textContent = "Internships unavailable. " + message;
+        document.getElementById("internship-cards").replaceChildren();
         document.getElementById("popular-career-title").textContent = "Career data unavailable";
         document.getElementById("popular-career-salary").textContent = "--";
         document.getElementById("popular-career-detail").textContent = "";

@@ -485,6 +485,36 @@ body {
 }
 
 /* ---------- TOP HEADER ---------- */
+/* Full-width alumni internship section below the dashboard columns. */
+.internships-section {
+    margin: 20px 10px 0;
+    padding: 25px;
+    background-color: var(--panel-bg);
+    border: 2px solid var(--theme-border);
+    border-radius: 15px;
+}
+
+.internships-section h2 { margin: 0 0 10px; color: var(--accent-gold); }
+#internships-summary { color: var(--text-muted); }
+.internship-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin: 20px 0;
+}
+.internship-card {
+    padding: 20px;
+    border: 1px solid var(--theme-border);
+    border-top: 3px solid var(--accent-gold);
+    border-radius: 10px;
+    background-color: var(--card-bg);
+    overflow-wrap: anywhere;
+}
+.internship-industry { color: var(--accent-warm); font-size: 12px; }
+.internship-card h3 { margin: 12px 0 8px; font-size: 18px; color: var(--text-primary); }
+.internship-card p { margin: 0 0 18px; color: var(--text-muted); }
+.internship-card small { color: var(--accent-warm); }
+
 .popular-career {
     margin: 20px 0;
     padding: 20px;
