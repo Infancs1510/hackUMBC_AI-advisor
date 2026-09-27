@@ -12,7 +12,15 @@ from dataclasses import dataclass
 import pandas as pd
 
 from app.data.parsing import NOT_APPLICABLE, split_pipe
-from app.models.career import AlumniOutcomes, CareerDetail, CareerSummary, SkillFrequency
+from app.models.career import (
+    AlumniOutcomes,
+    CareerDetail,
+    CareerSummary,
+    CountShare,
+    EmployerStat,
+    EntryMarket,
+    SkillFrequency,
+)
 from app.models.dashboard import CareerMatch
 from app.services.salary import SENIORITY_ORDER, career_salary
 
@@ -21,6 +29,7 @@ MIN_SKILL_SHARE = 0.15
 # Skills listed by at least this share of entry-level spells are the career's core skills.
 CORE_SKILL_SHARE = 0.9
 ENTRY_LEVEL = "Entry"
+TOP_N = 6
 
 
 @dataclass(frozen=True)
@@ -102,11 +111,23 @@ def resolve_career(name: str, profiles: dict[str, CareerProfile]) -> str | None:
     return next((c for c in profiles if c.casefold() == wanted), None)
 
 
-def alumni_outcomes(alumni: pd.DataFrame, career: str) -> AlumniOutcomes:
+def alumni_outcomes(alumni: pd.DataFrame, career: str, experiences: pd.DataFrame | None = None) -> AlumniOutcomes:
     cohort = alumni[alumni["first_job_family"] == career]
     # first_job_is_remote mixes TRUE/FALSE with "Not Applicable", so it loads as text.
     remote = cohort.loc[cohort["first_job_is_remote"].astype(str) != NOT_APPLICABLE, "first_job_is_remote"]
     found_via = cohort.loc[cohort["first_job_found_via"] != NOT_APPLICABLE, "first_job_found_via"]
+
+    certifications: list[CountShare] = []
+    if experiences is not None and len(cohort):
+        certs = experiences[
+            (experiences["experience_type"] == "Certification") & experiences["campus_id"].isin(cohort["campus_id"])
+        ]
+        holders = certs.drop_duplicates(["campus_id", "experience_name"])["experience_name"].value_counts()
+        certifications = [
+            CountShare(name=str(name), count=int(n), share=round(n / len(cohort), 3))
+            for name, n in holders.head(TOP_N).items()
+        ]
+
     return AlumniOutcomes(
         alumni_count=len(cohort),
         share_with_internship=(
@@ -114,6 +135,32 @@ def alumni_outcomes(alumni: pd.DataFrame, career: str) -> AlumniOutcomes:
         ),
         first_job_remote_share=round(float((remote.astype(str) == "TRUE").mean()), 3) if len(remote) else None,
         found_via={str(k): int(v) for k, v in found_via.value_counts().items()},
+        top_certifications=certifications,
+    )
+
+
+def entry_market(employment: pd.DataFrame, career: str) -> EntryMarket:
+    entry = employment[(employment["job_family"] == career) & (employment["seniority_level"] == ENTRY_LEVEL)]
+    n = len(entry)
+    employers = [
+        EmployerStat(
+            name=str(name),
+            count=len(group),
+            share=round(len(group) / n, 3),
+            industry=str(group["employer_industry"].mode().iloc[0]),
+        )
+        for name, group in sorted(entry.groupby("employer"), key=lambda kv: (-len(kv[1]), kv[0]))[:TOP_N]
+    ]
+    regions = [
+        CountShare(name=str(name), count=int(c), share=round(c / n, 3))
+        for name, c in entry["region"].value_counts().head(TOP_N).items()
+    ]
+    return EntryMarket(
+        spell_count=n,
+        requires_clearance_share=round(float(entry["requires_clearance"].astype(bool).mean()), 3) if n else None,
+        remote_share=round(float(entry["is_remote"].astype(bool).mean()), 3) if n else None,
+        top_employers=employers,
+        top_regions=regions,
     )
 
 
@@ -132,7 +179,12 @@ def career_summary(profile: CareerProfile, employment: pd.DataFrame) -> CareerSu
     )
 
 
-def career_detail(profile: CareerProfile, employment: pd.DataFrame, alumni: pd.DataFrame) -> CareerDetail:
+def career_detail(
+    profile: CareerProfile,
+    employment: pd.DataFrame,
+    alumni: pd.DataFrame,
+    experiences: pd.DataFrame | None = None,
+) -> CareerDetail:
     spells = employment[employment["job_family"] == profile.name]
     by_seniority: dict[str, list[str]] = {}
     for level in SENIORITY_ORDER:
@@ -150,5 +202,6 @@ def career_detail(profile: CareerProfile, employment: pd.DataFrame, alumni: pd.D
         ],
         skills_by_seniority=by_seniority,
         salary=career_salary(employment, profile.name),
-        alumni_outcomes=alumni_outcomes(alumni, profile.name),
+        entry_market=entry_market(employment, profile.name),
+        alumni_outcomes=alumni_outcomes(alumni, profile.name, experiences),
     )

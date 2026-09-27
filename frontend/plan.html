@@ -1,0 +1,190 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Spring Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1400px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+    <div>
+      <div class="inline-flex items-center gap-space-xs text-secondary font-label-code text-[11px] tracking-wider uppercase mb-1 font-bold"><span class="w-2 h-2 rounded-full bg-primary-container"></span>Registration planning</div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface"><span id="term-title">Spring 2027</span> <span class="text-primary-container">Course Plan</span></h1>
+      <p class="text-body-md text-on-surface-variant mt-1 max-w-3xl">Build your plan, check it against prerequisites and when courses are offered, and send it to your advisor for review.</p>
+    </div>
+  </div>
+
+  <section id="status" class="hidden"></section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <section class="lg:col-span-8 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col gap-space-md">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h2 class="text-title-lg font-bold text-on-surface">Your plan</h2>
+        <span class="text-xs text-on-surface-variant" id="credits">0 credits</span>
+      </div>
+      <div id="courses" class="flex flex-col gap-space-sm"></div>
+      <form id="add-form" class="flex gap-2">
+        <input id="add-input" list="course-options" placeholder="Add a course (e.g. CMSC447)" autocomplete="off"
+          class="flex-1 bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary uppercase placeholder:normal-case">
+        <datalist id="course-options"></datalist>
+        <button class="px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold border border-outline-variant/30 hover:bg-surface-container-highest" type="submit">Add</button>
+      </form>
+      <div id="issues" class="flex flex-col gap-1"></div>
+      <label class="flex flex-col gap-1 text-xs text-on-surface-variant">Note for your advisor (optional)
+        <textarea id="note" maxlength="500" rows="2" class="bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary resize-none" placeholder="e.g. I'd like to keep Fridays free for my internship."></textarea>
+      </label>
+      <div class="flex flex-wrap gap-2 pt-space-sm border-t border-outline-variant/20">
+        <button id="submit" class="px-space-lg py-2.5 rounded-lg bg-primary-container text-on-primary text-sm font-bold hover:bg-secondary disabled:opacity-50 shadow-[0_0_14px_rgba(255,179,0,0.3)]" type="button">Submit for review</button>
+        <button id="withdraw" class="hidden px-space-md py-2.5 rounded-lg bg-surface-container text-error text-xs font-semibold border border-outline-variant/30" type="button">Withdraw plan</button>
+      </div>
+      <p class="text-[11px] text-on-surface-variant" id="notice"></p>
+    </section>
+
+    <aside class="lg:col-span-4 flex flex-col gap-space-lg">
+      <section class="rounded-xl p-space-lg shadow-xl border border-primary-container/40 bg-gradient-to-br from-primary-container/15 via-surface-container-low to-surface-container-low">
+        <h3 class="text-sm font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-primary">auto_awesome</span>From your roadmap</h3>
+        <p class="text-xs text-on-surface-variant mt-1">Suggested for this term by your Career Pathways roadmap.</p>
+        <div id="suggested" class="flex flex-wrap gap-1.5 mt-space-sm"></div>
+        <button id="use-suggested" class="mt-space-md w-full py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary" type="button">Start from these</button>
+      </section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl">
+        <h3 class="text-sm font-bold text-on-surface">Required courses you can take</h3>
+        <p class="text-xs text-on-surface-variant mt-1">Remaining requirements that are open to you next term and not in your plan.</p>
+        <div id="missing" class="flex flex-wrap gap-1.5 mt-space-sm"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = Shell.mount({ active: "plan" });
+  if (!session) return;
+  const me = encodeURIComponent(session.user.campus_id);
+  const STATUS = { ok: ["check_circle", "text-emerald-400"], warning: ["warning", "text-primary"], blocked: ["block", "text-error"] };
+  let view = null, courses = [], validation = null, timer = null;
+
+  function renderStatus() {
+    const p = view.plan;
+    if (!p) { $("status").classList.add("hidden"); $("withdraw").classList.add("hidden"); $("submit").textContent = "Submit for review"; return; }
+    const tone = { submitted: ["Waiting for review", "hourglass_top", "border-primary-container/40 bg-primary-container/10", "text-primary"],
+      approved: ["Approved by your advisor", "verified", "border-emerald-500/40 bg-emerald-500/10", "text-emerald-400"],
+      changes_requested: ["Changes requested", "edit_note", "border-error/40 bg-error-container/20", "text-error"] }[p.status];
+    $("status").className = `rounded-xl border p-space-lg shadow-xl flex items-start gap-space-md ${tone[2]}`;
+    $("status").innerHTML = `
+      <span class="material-symbols-outlined text-[28px] ${tone[3]}">${tone[1]}</span>
+      <div>
+        <div class="text-title-lg font-bold text-on-surface">${tone[0]}</div>
+        <p class="text-xs text-on-surface-variant mt-0.5">Submitted ${esc(new Date(p.submitted_at).toLocaleString())} · ${p.courses.length} courses, ${p.validation.total_credits} credits${p.decided_at ? ` · decided ${esc(new Date(p.decided_at).toLocaleString())}` : ""}</p>
+        ${p.advisor_note ? `<p class="text-sm text-on-surface mt-2">Advisor: “${esc(p.advisor_note)}”</p>` : ""}
+        ${p.status === "submitted" && p.validation.category === "meeting" ? `<p class="text-xs text-on-surface-variant mt-2">Your advisor will want to meet before approving. <a class="text-primary font-semibold hover:underline" href="appointments.html${App.apiQuery()}">Book an appointment</a>.</p>` : ""}
+      </div>`;
+    $("withdraw").classList.remove("hidden");
+    $("submit").textContent = "Resubmit changes";
+  }
+
+  function renderCourses() {
+    $("courses").innerHTML = courses.length ? courses.map((cid) => {
+      const c = validation && validation.courses.find((x) => x.course_id === cid);
+      const [icon, color] = c ? STATUS[c.status] : ["pending", "text-outline"];
+      return `
+        <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-3 border ${c && c.status === "blocked" ? "border-error/40" : "border-outline-variant/20"}">
+          <div class="flex items-center gap-space-sm min-w-0">
+            <span class="material-symbols-outlined ${color}">${icon}</span>
+            <div class="min-w-0">
+              <div class="text-sm font-bold text-on-surface">${esc(cid)} ${c ? `<span class="font-normal text-on-surface-variant">· ${esc(c.title)} · ${c.credits} cr</span>` : ""}${c && c.required ? ` <span class="text-[10px] text-primary font-label-code">REQUIRED</span>` : ""}</div>
+              <div class="text-[11px] ${c && c.status === "blocked" ? "text-error" : "text-on-surface-variant"}">${c ? esc(c.notes.join(" · ")) : "Checking…"}</div>
+            </div>
+          </div>
+          <button data-remove="${esc(cid)}" class="text-on-surface-variant hover:text-error" title="Remove ${esc(cid)}"><span class="material-symbols-outlined text-lg">close</span></button>
+        </div>`;
+    }).join("") : `<div class="p-space-md rounded-lg border border-dashed border-outline-variant/50 text-xs text-on-surface-variant">No courses yet — start from your roadmap or add courses below.</div>`;
+    $("courses").querySelectorAll("[data-remove]").forEach((b) => b.addEventListener("click", () => { courses = courses.filter((c) => c !== b.dataset.remove); changed(); }));
+    $("credits").textContent = validation ? `${validation.total_credits} credits` : "";
+    $("issues").innerHTML = validation ? validation.issues.map((i) => `<div class="text-xs text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">info</span>${esc(i)}</div>`).join("") : "";
+    $("submit").disabled = !courses.length;
+    const missing = validation ? validation.missing_required : [];
+    $("missing").innerHTML = missing.length ? missing.map((c) => `<button data-add="${esc(c)}" class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface text-xs border border-outline-variant/30 hover:border-primary-container/60">+ ${esc(c)}</button>`).join("") : `<span class="text-xs text-emerald-400">All open requirements are in your plan.</span>`;
+    $("missing").querySelectorAll("[data-add]").forEach((b) => b.addEventListener("click", () => add(b.dataset.add)));
+  }
+
+  async function revalidate() {
+    if (!courses.length) { validation = null; renderCourses(); return; }
+    try {
+      validation = await api(`/api/plans/${me}/validate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courses }) });
+    } catch (err) { Shell.toast(err.message); }
+    renderCourses();
+  }
+  function changed() { renderCourses(); clearTimeout(timer); timer = setTimeout(revalidate, 250); }
+  function add(cid) {
+    cid = cid.trim().toUpperCase().replace(/\s+/g, "");
+    if (!cid || courses.includes(cid)) return;
+    if (courses.length >= 8) { Shell.toast("Plans can have up to 8 courses."); return; }
+    courses.push(cid); changed();
+  }
+
+  async function submit() {
+    $("submit").disabled = true;
+    try {
+      const plan = await api(`/api/plans/${me}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ courses, note: $("note").value }) });
+      view.plan = plan; validation = plan.validation;
+      Shell.toast("Plan sent to your advisor.");
+      renderStatus(); renderCourses();
+    } catch (err) { Shell.toast(err.message); }
+    finally { $("submit").disabled = !courses.length; }
+  }
+
+  async function withdraw() {
+    if (!confirm("Withdraw your plan? Your advisor will no longer see it.")) return;
+    try { await api(`/api/plans/${me}`, { method: "DELETE" }); view.plan = null; renderStatus(); Shell.toast("Plan withdrawn."); }
+    catch (err) { Shell.toast(err.message); }
+  }
+
+  (async () => {
+    try {
+      const [v, dash, audit] = await Promise.all([api(`/api/plans/${me}`), api(`/api/dashboard/${me}`), api(`/api/degree/${me}`)]);
+      view = v;
+      Shell.setStudent(dash.student);
+      $("term-title").textContent = v.term;
+      $("notice").textContent = v.notice;
+      $("suggested").innerHTML = v.suggested.map((c) => `<span class="px-2.5 py-1 rounded-full bg-surface-container text-primary text-xs font-semibold">${esc(c)}</span>`).join("") || `<span class="text-xs text-on-surface-variant">No roadmap suggestions for this term.</span>`;
+      $("use-suggested").disabled = !v.suggested.length;
+      const options = new Set([...v.suggested, ...audit.remaining_required_courses.map((c) => c.course_id), ...(dash.pathway ? dash.pathway.recommended_courses.map((c) => c.course_id) : [])]);
+      $("course-options").innerHTML = [...options].map((c) => `<option value="${esc(c)}">`).join("");
+      if (v.plan) { courses = [...v.plan.courses]; validation = v.plan.validation; $("note").value = v.plan.note; }
+      renderStatus(); renderCourses();
+      if (!v.plan) revalidate();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  })();
+
+  $("add-form").addEventListener("submit", (e) => { e.preventDefault(); add($("add-input").value); $("add-input").value = ""; });
+  $("use-suggested").addEventListener("click", () => { courses = [...view.suggested]; changed(); });
+  $("submit").addEventListener("click", submit);
+  $("withdraw").addEventListener("click", withdraw);
+})();
+</script>
+</body></html>

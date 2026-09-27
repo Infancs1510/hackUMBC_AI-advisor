@@ -3,9 +3,11 @@
 from app.data.loader import Course
 from app.data.parsing import NEXT_TERM, NEXT_TERM_SEASON
 from app.models.career import AlumniOutcomes
-from app.models.dashboard import CareerMatch, CourseRecommendation, Pathway, PrerequisiteStep
+from app.services.career_matching import CORE_SKILL_SHARE
+from app.models.dashboard import CareerMatch, CourseRecommendation, Pathway, PrerequisiteStep, SkillCoverage
 
 MAX_RECOMMENDATIONS = 6
+MAX_COURSES_PER_SKILL = 3
 MAX_PREREQ_DEPTH = 6
 
 STATUS_ELIGIBLE = "eligible"
@@ -62,6 +64,7 @@ def recommend_courses(
     limit: int = MAX_RECOMMENDATIONS,
 ) -> list[CourseRecommendation]:
     missing = set(match.missing_skills)
+    total_weight = sum(weights.values()) or 1.0
     candidates: list[tuple[tuple, CourseRecommendation]] = []
     for course in catalog.values():
         if course.course_id in satisfied or course.course_id in in_progress:
@@ -71,6 +74,7 @@ def recommend_courses(
             continue
         status, missing_prereqs = prerequisite_status(course, satisfied, in_progress)
         offered_next = NEXT_TERM_SEASON in course.terms_offered
+        coverage = sum(weights.get(s, 0.0) for s in gained)
         rec = CourseRecommendation(
             course_id=course.course_id,
             title=course.title,
@@ -83,8 +87,8 @@ def recommend_courses(
             skills_gained=gained,
             status=status,
             missing_prerequisites=missing_prereqs,
+            score_gain=round(100 * coverage / total_weight, 1),
         )
-        coverage = sum(weights.get(s, 0.0) for s in gained)
         key = (_STATUS_RANK[status], -round(coverage, 3), not offered_next, course.difficulty_index, course.course_id)
         candidates.append((key, rec))
     candidates.sort(key=lambda kv: kv[0])
@@ -138,6 +142,34 @@ def prerequisite_steps(
     return sorted(steps, key=lambda s: (_STATUS_RANK[s.status], -len(s.unlocks), s.course_id))
 
 
+def skill_coverage(
+    weights: dict[str, float],
+    have: set[str],
+    catalog: dict[str, Course],
+    satisfied: set[str],
+    in_progress: set[str],
+) -> list[SkillCoverage]:
+    in_progress_skills = {s for cid in in_progress if cid in catalog for s in catalog[cid].skills}
+    items = []
+    for skill, share in weights.items():
+        status = "have" if skill in have else "in_progress" if skill in in_progress_skills else "missing"
+        teaching = [
+            c for c in catalog.values()
+            if skill in c.skills and c.course_id not in satisfied and c.course_id not in in_progress
+        ]
+        teaching.sort(key=lambda c: (_STATUS_RANK[prerequisite_status(c, satisfied, in_progress)[0]], c.difficulty_index, c.course_id))
+        items.append(
+            SkillCoverage(
+                skill=skill,
+                share=share,
+                is_core=share >= CORE_SKILL_SHARE,
+                status=status,
+                courses=[] if status == "have" else [c.course_id for c in teaching[:MAX_COURSES_PER_SKILL]],
+            )
+        )
+    return items
+
+
 def build_pathway(
     match: CareerMatch,
     weights: dict[str, float],
@@ -157,5 +189,6 @@ def build_pathway(
         recommended_courses=recommendations,
         prerequisite_steps=prerequisite_steps(recommendations, catalog, satisfied, in_progress),
         skills_not_covered_by_catalog=[s for s in match.missing_skills if s not in taught],
+        skill_coverage=skill_coverage(weights, set(match.matched_skills), catalog, satisfied, in_progress),
         alumni_outcomes=outcomes,
     )

@@ -38,6 +38,26 @@ class SkillFrequency(BaseModel):
     is_core: bool
 
 
+class CountShare(BaseModel):
+    name: str
+    count: int
+    share: float
+
+
+class EmployerStat(CountShare):
+    industry: str
+
+
+class EntryMarket(BaseModel):
+    """Where alumni entry-level jobs in this career were (employer names are fictitious)."""
+
+    spell_count: int
+    requires_clearance_share: float | None
+    remote_share: float | None
+    top_employers: list[EmployerStat]
+    top_regions: list[CountShare]
+
+
 class AlumniOutcomes(BaseModel):
     """First-destination statistics for alumni whose first job was in this career."""
 
@@ -47,6 +67,9 @@ class AlumniOutcomes(BaseModel):
         description="Share of these alumni whose first job was fully remote (alumni.first_job_is_remote)."
     )
     found_via: dict[str, int]
+    top_certifications: list[CountShare] = Field(
+        default_factory=list, description="Certifications held by these alumni; share is of the alumni_count."
+    )
 
 
 class CareerSummary(BaseModel):
@@ -62,6 +85,7 @@ class CareerDetail(CareerSummary):
     skills: list[SkillFrequency]
     skills_by_seniority: dict[str, list[str]]
     salary: CareerSalary
+    entry_market: EntryMarket
     alumni_outcomes: AlumniOutcomes
 
 

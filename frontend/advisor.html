@@ -1,0 +1,424 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Advisor Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Welcome banner -->
+  <section class="relative overflow-hidden rounded-xl bg-surface-container-low border border-surface-container shadow-xl p-space-lg md:p-space-xl">
+    <div class="absolute -right-12 -top-12 w-64 h-64 rounded-full bg-primary-container/10 blur-3xl pointer-events-none"></div>
+    <div class="relative flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+      <div class="flex items-start gap-space-md">
+        <div class="w-14 h-14 rounded-xl bg-primary-container/15 border border-primary-container/30 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[30px] text-primary-container">diversity_3</span></div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span class="px-2 py-0.5 rounded bg-surface-container-highest text-[11px] text-on-surface-variant uppercase tracking-wider font-bold" id="cycle-badge">Advising hub</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+            <span class="text-[11px] text-secondary font-semibold">Records as of Sep 15, 2026</span>
+          </div>
+          <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface" id="welcome">Welcome</h1>
+          <p class="text-body-md text-on-surface-variant mt-0.5" id="welcome-sub">Loading caseload…</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-space-sm no-print">
+        <a id="btn-queue" href="#queue" class="flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary hover:bg-secondary text-xs font-bold shadow-[0_0_14px_rgba(255,179,0,0.3)] transition-all">
+          <span class="material-symbols-outlined text-lg">priority_high</span><span id="btn-queue-text">Review attention queue</span>
+        </a>
+        <button onclick="window.print()" class="flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high text-xs font-semibold border border-outline-variant/30 transition-all" type="button">
+          <span class="material-symbols-outlined text-lg">download</span>Export summary (PDF)
+        </button>
+        <a id="btn-roster" href="roster.html" class="flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high text-xs font-semibold border border-outline-variant/30 transition-all">
+          <span class="material-symbols-outlined text-lg">group</span>Open full roster
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPI cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md" id="kpis"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <!-- Left -->
+    <div class="lg:col-span-7 flex flex-col gap-space-lg min-w-0">
+      <section id="queue" class="scroll-mt-20 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-md gap-space-sm">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-headline-sm font-bold text-on-surface">Attention Queue</h2>
+              <span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary text-[11px] font-bold" id="queue-count">—</span>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-0.5">Flagged students you haven't reviewed yet, most severe first. Flags are calculated from the dataset.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 bg-surface-container p-1 rounded-lg mb-space-md text-on-surface-variant" id="queue-filters"></div>
+        <div class="flex flex-col gap-space-sm" id="queue-rows"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+        <div class="mt-space-md pt-space-sm flex flex-wrap items-center justify-between gap-2 border-t border-outline-variant/20">
+          <span class="text-xs text-on-surface-variant" id="queue-footer"></span>
+          <div class="flex items-center gap-2">
+            <button id="queue-prev" class="px-2 py-1 rounded bg-surface-container text-xs disabled:opacity-40" type="button">← Prev</button>
+            <button id="queue-next" class="px-2 py-1 rounded bg-surface-container text-xs disabled:opacity-40" type="button">Next →</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="pathways" class="scroll-mt-20 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl"><div class="text-sm text-on-surface-variant">Loading…</div></section>
+    </div>
+
+    <!-- Right -->
+    <div class="lg:col-span-5 flex flex-col gap-space-lg min-w-0">
+      <section id="schedule" class="scroll-mt-20 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl"><div class="text-sm text-on-surface-variant">Loading…</div></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="alerts"><div class="text-sm text-on-surface-variant">Loading…</div></section>
+    </div>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/advisor-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = AdvisorShell.mount({ active: "dashboard" });
+  if (!session) return;
+  const { toast, withApi } = AdvisorShell;
+  const studentLink = (cid) => withApi(`student-file.html#${cid}`);
+
+  const FLAG_STYLE = {
+    academic_standing: ["Standing", "bg-error-container/30 text-error"],
+    graduation_risk: ["Graduation risk", "bg-error-container/30 text-error"],
+    no_internship: ["No internship", "bg-primary-container/15 text-primary"],
+    low_career_match: ["Low career match", "bg-secondary/15 text-secondary"],
+  };
+  // Suggested meeting topic for a student's most severe flag.
+  const REASON_FOR_FLAG = {
+    academic_standing: "degree_check", graduation_risk: "degree_check",
+    no_internship: "internship_planning", low_career_match: "career_planning",
+  };
+  const REASON_LABEL = {
+    degree_check: "Degree progress check", internship_planning: "Internship & experience planning",
+    career_planning: "Career planning & track electives", course_planning: "Course planning for next term",
+  };
+
+  let dash = null;
+  let openRequests = new Map(); // campus_id -> request
+  const queue = { flag: "", page: 1, pageSize: 5, total: 0 };
+
+  const fmtTime = (iso) => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" }).format(new Date(iso));
+  const fmtDay = (iso) => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "long", month: "short", day: "numeric" }).format(new Date(iso));
+  const nyDate = (iso) => new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date(iso));
+  const todayNY = nyDate(new Date().toISOString());
+
+  // ---------------- Banner + KPIs ----------------
+  function renderSummary() {
+    const d = dash;
+    AdvisorShell.setAdvisor({ name: d.advisor, caseload: d.total_students, upcoming: d.upcoming_appointments });
+    $("welcome").innerHTML = `Welcome, <span class="text-primary-container">${esc(d.advisor)}</span>`;
+    $("cycle-badge").textContent = `Advising hub · ${d.next_term} planning`;
+    $("welcome-sub").innerHTML = `Computer Science &amp; Information Systems caseload <span class="font-bold text-on-surface">(${d.total_students.toLocaleString()} current students)</span> · ${Object.entries(d.by_major).map(([m, n]) => `${n.toLocaleString()} ${m === "Computer Science" ? "CS" : "IS"}`).join(" · ")}`;
+    $("btn-queue-text").textContent = `Review attention queue (${d.flagged_unreviewed})`;
+    $("btn-roster").href = withApi("roster.html");
+
+    const risk = (d.standing_counts["Academic Warning"] || 0) + (d.standing_counts["Academic Probation"] || 0);
+    const levels = ["Freshman", "Sophomore", "Junior", "Senior"];
+    const card = (label, icon, accent, value, tag, sub, extra = "") => `
+      <div class="relative overflow-hidden rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl flex flex-col justify-between">
+        ${accent ? `<div class="absolute top-0 left-0 right-0 h-1 ${accent}"></div>` : ""}
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] uppercase tracking-wider font-bold ${accent === "bg-error" ? "text-error" : "text-on-surface-variant"}">${label}</span>
+          <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center ${accent === "bg-error" ? "text-error" : "text-secondary"}"><span class="material-symbols-outlined text-lg">${icon}</span></div>
+        </div>
+        <div class="mt-space-md">
+          <div class="flex flex-wrap items-baseline gap-2"><span class="text-display-lg-mobile font-extrabold leading-none ${accent === "bg-error" ? "text-error" : "text-on-surface"}">${value}</span>${tag}</div>
+          <p class="text-xs text-on-surface-variant mt-2">${sub}</p>
+        </div>${extra}
+      </div>`;
+    const total = d.total_students;
+    $("kpis").innerHTML = [
+      card("Total caseload", "groups", "", total.toLocaleString(), "",
+        levels.map((l) => `${d.by_class_level[l] || 0} ${l.slice(0, 2)}`).join(" · "),
+        `<div class="mt-space-sm w-full bg-surface-container-highest rounded-full h-1.5 overflow-hidden flex">${levels.map((l, i) => `<div class="${["bg-outline", "bg-secondary/60", "bg-secondary", "bg-primary-container"][i]} h-full" style="width:${((d.by_class_level[l] || 0) / total) * 100}%" title="${l}"></div>`).join("")}</div>`),
+      card("Needs attention", "priority_high", "bg-primary-container", d.flagged_unreviewed,
+        `<span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary text-[11px] font-bold">Not yet reviewed</span>`,
+        `${d.flagged_students} flagged in total · <strong class="text-secondary">${d.reviewed_students} reviewed</strong>`),
+      card("Upcoming appointments", "calendar_today", "", d.upcoming_appointments,
+        `<span class="text-[11px] text-on-surface-variant font-medium">${d.appointments_today} today</span>`,
+        d.next_appointment ? `Next: <strong class="text-on-surface">${esc(d.next_appointment.campus_id)}</strong> · ${esc(fmtDay(d.next_appointment.start))}, ${esc(fmtTime(d.next_appointment.start))}` : "No upcoming appointments",
+        d.open_meeting_requests ? `<div class="mt-space-sm text-[11px] text-secondary font-medium">${d.open_meeting_requests} meeting request${d.open_meeting_requests === 1 ? "" : "s"} awaiting a booking</div>` : ""),
+      card("Academic risk", "warning", "bg-error", risk,
+        `<span class="px-2 py-0.5 rounded-full bg-error-container/40 text-error text-[11px] font-bold">Warning / probation</span>`,
+        `${d.standing_counts["Academic Warning"] || 0} warning · ${d.standing_counts["Academic Probation"] || 0} probation · ${d.flag_counts.graduation_risk} graduation risk`),
+    ].join("");
+  }
+
+  // ---------------- Attention queue ----------------
+  function renderQueueFilters() {
+    const chips = [["", "All flagged", dash.flagged_unreviewed], ...Object.entries(FLAG_STYLE).map(([code, [label]]) => [code, label, dash.flag_counts[code]])];
+    $("queue-filters").innerHTML = chips.map(([code, label, n]) => `
+      <button type="button" data-flag="${code}" class="px-space-sm py-1 rounded text-[11px] ${queue.flag === code ? "bg-surface-container-highest text-primary font-bold" : "hover:text-on-surface font-medium"}">${esc(label)}${code ? ` (${n})` : ` (${n})`}</button>`).join("");
+    $("queue-filters").querySelectorAll("[data-flag]").forEach((b) => b.addEventListener("click", () => { queue.flag = b.dataset.flag; queue.page = 1; loadQueue(); }));
+  }
+
+  function queueRow(s) {
+    const worst = s.flags.map((f) => f.code).sort((a, b) => Object.keys(FLAG_STYLE).indexOf(a) - Object.keys(FLAG_STYLE).indexOf(b))[0];
+    const req = openRequests.get(s.campus_id);
+    return `
+      <div class="p-space-md rounded-xl bg-surface-container hover:bg-surface-container-high/70 transition-colors flex flex-col gap-space-sm border border-outline-variant/20" data-row="${esc(s.campus_id)}">
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-sm">
+          <div class="flex items-start gap-space-sm min-w-0">
+            <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 mt-0.5"><span class="material-symbols-outlined text-on-surface-variant">person</span></div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <a href="${studentLink(s.campus_id)}" class="text-sm font-bold text-on-surface hover:text-primary">${esc(s.campus_id)}</a>
+                <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface text-[11px] font-semibold">${esc(s.class_level)} · ${esc(s.major)}${s.track !== "General" ? ` · ${esc(s.track)}` : ""}</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-on-surface-variant">
+                <span class="font-semibold text-primary">GPA ${s.gpa ?? "—"}</span><span>•</span>
+                <span class="${s.academic_standing === "Good Standing" ? "" : "text-error font-medium"}">${esc(s.academic_standing)}</span><span>•</span>
+                <span>Expected grad ${esc(s.expected_graduation_term)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1 self-start sm:justify-end">${s.flags.map((f) => `<span class="px-2 py-0.5 rounded text-[10px] font-bold ${FLAG_STYLE[f.code][1]}" title="${esc(f.label)}">${FLAG_STYLE[f.code][0]}</span>`).join("")}</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm p-space-sm bg-surface-container-low rounded-lg">
+          <div>
+            <p class="text-[10px] text-outline uppercase font-semibold">Degree requirements</p>
+            <div class="mt-1 text-xs text-on-surface">${s.remaining_required_count ? `${s.remaining_required_count} required course${s.remaining_required_count === 1 ? "" : "s"} left` : "All required courses done or underway"}
+              ${s.next_required.length ? `<div class="flex flex-wrap gap-1 mt-1">${s.next_required.slice(0, 4).map((c) => `<span class="px-1.5 py-0.5 bg-surface-container-high rounded text-[11px]">${esc(c)}</span>`).join("")}<span class="text-[11px] text-outline">open next term</span></div>` : ""}</div>
+          </div>
+          <div>
+            <p class="text-[10px] text-outline uppercase font-semibold">Experience &amp; direction</p>
+            <div class="mt-1 text-xs text-on-surface">${s.internship_count} internship${s.internship_count === 1 ? "" : "s"} · ${s.credential_count} credential${s.credential_count === 1 ? "" : "s"}</div>
+            <div class="text-[11px] text-on-surface-variant">${s.top_career ? `Top match: ${esc(s.top_career)} (${s.top_career_score})` : "No completed coursework to match yet"}</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <a href="${studentLink(s.campus_id)}" class="text-xs text-on-surface-variant hover:text-primary font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-sm">open_in_new</span>Open student file</a>
+          <div class="flex flex-wrap items-center gap-space-sm">
+            ${req ? `<span class="px-space-sm py-1.5 rounded-lg bg-surface-container-highest text-secondary text-[11px] font-semibold">Meeting requested · ${esc(req.reason_label)}</span>`
+              : `<button data-request="${esc(s.campus_id)}" data-reason="${REASON_FOR_FLAG[worst]}" class="px-space-sm py-1.5 rounded-lg bg-surface-container-highest text-on-surface text-[11px] font-semibold hover:bg-surface-bright transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-sm">event</span>Request meeting</button>`}
+            <button data-review="${esc(s.campus_id)}" class="px-space-md py-1.5 rounded-lg bg-primary-container text-on-primary hover:bg-secondary text-[11px] font-bold transition-all flex items-center gap-1"><span class="material-symbols-outlined text-sm">task_alt</span>Mark reviewed</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  async function loadQueue() {
+    renderQueueFilters();
+    const params = new URLSearchParams({ reviewed: "false", flagged: "true", page: queue.page, page_size: queue.pageSize, sort: "flags" });
+    if (queue.flag) params.set("flag", queue.flag);
+    try {
+      const r = await api(`/api/caseload?${params}`);
+      const rows = r.students;
+      queue.total = r.total;
+      $("queue-count").textContent = `${r.total} to review`;
+      $("queue-rows").innerHTML = rows.map(queueRow).join("") || `<div class="p-space-md text-sm text-emerald-400">Nothing left to review here.</div>`;
+      const pages = Math.max(1, Math.ceil(r.total / queue.pageSize));
+      $("queue-footer").innerHTML = `Page ${queue.page} of ${pages} · <a class="text-secondary font-semibold hover:underline" href="${withApi("roster.html")}">Filter and sort all students in the roster →</a>`;
+      $("queue-prev").disabled = queue.page <= 1; $("queue-next").disabled = queue.page >= pages;
+      $("queue-rows").querySelectorAll("[data-review]").forEach((b) => b.addEventListener("click", () => markReviewed(b.dataset.review)));
+      $("queue-rows").querySelectorAll("[data-request]").forEach((b) => b.addEventListener("click", () => requestMeeting(b.dataset.request, b.dataset.reason)));
+    } catch (err) {
+      $("queue-rows").innerHTML = `<div class="text-error text-sm">${esc(err.message)}</div>`;
+    }
+  }
+
+  async function markReviewed(cid) {
+    const note = prompt(`Optional note for ${cid} (only advisors see it):`, "");
+    if (note === null) return;
+    try {
+      await api(`/api/caseload/${cid}/review`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note }) });
+      toast(`${cid} marked reviewed.`);
+      await refreshSummary(); await loadQueue();
+    } catch (err) { toast(err.message); }
+  }
+
+  async function requestMeeting(cid, reason) {
+    const message = prompt(`Ask ${cid} to book a "${REASON_LABEL[reason]}" appointment.\nOptional message they'll see:`, "");
+    if (message === null) return;
+    try {
+      const r = await api("/api/meeting-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campus_id: cid, reason, message }) });
+      openRequests.set(cid, r);
+      toast(`Meeting request sent — ${cid} will see it on their Appointments page.`);
+      await refreshSummary(); await loadQueue();
+    } catch (err) { toast(err.message); }
+  }
+
+  // ---------------- Pathways ----------------
+  function renderPathways() {
+    const d = dash;
+    const byMajor = {};
+    for (const t of d.tracks) (byMajor[t.major] ||= []).push(t);
+    const bar = (label, n, total, cls, tag = "") => `
+      <div>
+        <div class="flex justify-between items-center mb-1 gap-2">
+          <span class="text-xs font-semibold text-on-surface flex items-center gap-2">${esc(label)}${tag}</span>
+          <span class="text-xs font-bold text-primary whitespace-nowrap">${Math.round((n / total) * 100)}% <span class="text-on-surface-variant font-normal">(${n})</span></span>
+        </div>
+        <div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden"><div class="${cls} h-2 rounded-full" style="width:${(n / total) * 100}%"></div></div>
+      </div>`;
+    const matched = d.top_careers.reduce((n, c) => n + c.count, 0);
+    const rising = d.rising_career;
+    $("pathways").innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-space-md">
+        <div>
+          <h2 class="text-headline-sm font-bold text-on-surface">Pathway Distribution</h2>
+          <p class="text-xs text-on-surface-variant">Declared tracks, and the career each student's completed courses match best</p>
+        </div>
+        <span class="px-2.5 py-1 rounded bg-primary-container/15 text-primary text-[11px] font-bold">${esc(d.next_term)} planning</span>
+      </div>
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-space-lg">
+        ${Object.entries(byMajor).map(([major, tracks]) => {
+          const total = tracks.reduce((n, t) => n + t.count, 0);
+          return `<div class="flex flex-col gap-space-sm"><div class="text-[11px] uppercase tracking-wider font-bold text-on-surface-variant">${esc(major)} tracks · ${total}</div>
+            ${tracks.map((t, i) => bar(t.track, t.count, total, ["bg-primary-container", "bg-secondary", "bg-tertiary-container", "bg-emerald-400/70", "bg-outline"][i % 5])).join("")}</div>`;
+        }).join("")}
+      </div>
+      <div class="mt-space-lg pt-space-md border-t border-outline-variant/20 flex flex-col gap-space-sm">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-on-surface-variant">Top career match · ${matched.toLocaleString()} students with graded coursework</div>
+        ${d.top_careers.map((c) => bar(c.name, c.count, matched, "bg-secondary/70", rising && c.name === rising.shift.career ? `<span class="px-2 py-0.5 rounded-full bg-primary-container text-on-primary text-[10px] font-bold uppercase">Rising</span>` : "")).join("")}
+      </div>
+      ${rising ? `
+      <div class="mt-space-lg p-space-md rounded-xl bg-surface-container flex items-start gap-space-sm border border-primary-container/25">
+        <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-on-primary shrink-0 mt-0.5"><span class="material-symbols-outlined text-lg">trending_up</span></div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2"><h4 class="text-sm font-bold text-on-surface">${esc(rising.shift.career)} is the fastest-rising alumni career</h4><span class="text-[11px] text-secondary font-bold">From alumni outcomes</span></div>
+          <p class="text-xs text-on-surface-variant mt-1">Its share of alumni entry-level roles grew <strong class="text-on-surface">${rising.shift.change_pts > 0 ? "+" : ""}${rising.shift.change_pts} pts</strong> (${(rising.shift.early_share * 100).toFixed(1)}% in 2015–20 → ${(rising.shift.recent_share * 100).toFixed(1)}% in 2023–26). <strong class="text-on-surface">${rising.students_top_matching}</strong> of your students currently match it best.</p>
+        </div>
+      </div>` : ""}`;
+  }
+
+  // ---------------- Schedule ----------------
+  async function renderSchedule() {
+    try {
+      const r = await api("/api/appointments");
+      const groups = {};
+      for (const a of r.appointments) (groups[nyDate(a.start)] ||= []).push(a);
+      const entries = Object.entries(groups);
+      $("schedule").innerHTML = `
+        <div class="flex items-center justify-between pb-space-md">
+          <div>
+            <div class="flex items-center gap-2"><h2 class="text-headline-sm font-bold text-on-surface">Appointments &amp; Schedule</h2><span class="w-2 h-2 rounded-full bg-primary-container"></span></div>
+            <p class="text-xs text-on-surface-variant">${r.appointments.length} upcoming · times in Eastern Time</p>
+          </div>
+          <a href="${withApi("schedule.html")}" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">Full schedule<span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+        </div>
+        <div class="flex flex-col gap-space-md">${entries.map(([day, items]) => `
+          <div>
+            <div class="text-[11px] uppercase tracking-wider font-bold ${day === todayNY ? "text-primary" : "text-on-surface-variant"} mb-space-xs">${day === todayNY ? "Today · " : ""}${esc(fmtDay(items[0].start))}</div>
+            <div class="flex flex-col gap-space-sm">${items.map((a, i) => {
+              const b = a.brief, featured = day === todayNY && i === 0 || (!groups[todayNY] && entries[0][0] === day && i === 0);
+              return `
+                <div class="p-space-md rounded-xl ${featured ? "bg-surface-container shadow-md border border-primary-container/40" : "bg-surface-container border border-outline-variant/20"} flex flex-col gap-space-xs relative overflow-hidden">
+                  ${featured ? `<div class="absolute top-0 left-0 bottom-0 w-1.5 bg-primary-container"></div>` : ""}
+                  <div class="flex flex-wrap items-center justify-between gap-2 ${featured ? "pl-2" : ""}">
+                    <span class="text-[11px] font-bold ${featured ? "text-primary" : "text-on-surface-variant"} uppercase tracking-wide">${esc(fmtTime(a.start))} · ${a.modality === "virtual" ? "Virtual" : "In person"}${featured ? " · Up next" : ""}</span>
+                    <a href="${studentLink(a.campus_id)}" class="text-xs font-bold text-on-surface hover:text-primary">${esc(a.campus_id)}</a>
+                  </div>
+                  <div class="${featured ? "pl-2" : ""}">
+                    <div class="text-sm font-semibold text-on-surface">${esc(a.reason_label)}</div>
+                    <p class="text-[11px] text-on-surface-variant mt-0.5">${esc(b.class_level)} · ${esc(b.major)} · GPA ${b.gpa ?? "—"} · ${b.credits_earned}/${b.credits_required} cr · ${esc(b.academic_standing)}</p>
+                    <p class="text-[11px] text-on-surface-variant">Remaining required: ${esc(b.remaining_required_courses.join(", ") || "none")}${b.top_career ? ` · Top match: ${esc(b.top_career)}` : ""}${b.saved_goal ? ` · Goal: ${esc(b.saved_goal)}` : ""}</p>
+                    ${a.notes ? `<p class="text-xs text-on-surface mt-1">“${esc(a.notes)}”</p>` : ""}
+                  </div>
+                  <div class="${featured ? "pl-2" : ""} pt-space-xs flex flex-wrap items-center gap-space-sm">
+                    <a href="${studentLink(a.campus_id)}" class="flex-1 text-center py-1.5 rounded-lg bg-primary-container text-on-primary text-[11px] font-bold hover:bg-secondary transition-all">Open student file</a>
+                    <button data-complete="${a.id}" class="px-space-md py-1.5 rounded-lg bg-surface-container-high text-on-surface text-[11px] font-semibold hover:bg-surface-bright transition-all">Mark completed</button>
+                    <button data-cancel="${a.id}" class="px-space-sm py-1.5 rounded-lg bg-surface-container-high text-error text-[11px] font-semibold hover:bg-error-container/30 transition-all">Cancel</button>
+                  </div>
+                </div>`;
+            }).join("")}</div>
+          </div>`).join("") || `<div class="p-space-md rounded-lg bg-surface-container text-xs text-on-surface-variant">No upcoming appointments. Students book from their Appointments page, or you can send a meeting request from the attention queue.</div>`}</div>`;
+      $("schedule").querySelectorAll("[data-complete]").forEach((b) => b.addEventListener("click", () => appointmentAction(b.dataset.complete, "complete", "Marked completed.")));
+      $("schedule").querySelectorAll("[data-cancel]").forEach((b) => b.addEventListener("click", () => {
+        if (confirm("Cancel this appointment? The student will see it as cancelled.")) appointmentAction(b.dataset.cancel, "cancel", "Appointment cancelled.");
+      }));
+    } catch (err) {
+      $("schedule").innerHTML = `<div class="text-error text-sm">${esc(err.message)}</div>`;
+    }
+  }
+
+  async function appointmentAction(id, action, message) {
+    try {
+      await api(`/api/appointments/${id}/${action}`, { method: "POST" });
+      toast(message);
+      await refreshSummary(); await renderSchedule();
+    } catch (err) { toast(err.message); }
+  }
+
+  // ---------------- Alerts ----------------
+  function renderAlerts() {
+    const d = dash;
+    const risk = (d.standing_counts["Academic Warning"] || 0) + (d.standing_counts["Academic Probation"] || 0);
+    const alert = (tone, icon, title, body, action = "") => `
+      <div class="p-space-sm rounded-lg ${tone === "error" ? "bg-error-container/20" : tone === "gold" ? "bg-primary-container/10" : "bg-surface-container"} flex items-start gap-space-sm">
+        <span class="material-symbols-outlined ${tone === "error" ? "text-error" : tone === "gold" ? "text-primary" : "text-outline"} text-lg mt-0.5 shrink-0">${icon}</span>
+        <div><h5 class="text-xs font-bold text-on-surface">${title}</h5><p class="text-xs text-on-surface-variant mt-0.5">${body}</p>${action}</div>
+      </div>`;
+    const link = (flag, text, cls) => `<button data-alert-flag="${flag}" class="inline-block mt-1 text-[11px] font-bold ${cls} hover:underline">${text} →</button>`;
+    $("alerts").innerHTML = `
+      <div class="flex items-center justify-between pb-space-sm">
+        <div class="flex items-center gap-2"><h2 class="text-headline-sm font-bold text-on-surface">Advising Alerts</h2><span class="w-2 h-2 rounded-full bg-error"></span></div>
+        <span class="text-[11px] text-outline">From the dataset</span>
+      </div>
+      <div class="flex flex-col gap-space-sm mt-space-xs">
+        ${risk ? alert("error", "report_problem", "Academic standing", `<strong>${risk}</strong> students are on academic warning or probation.`, link("academic_standing", "Review flagged students", "text-error")) : ""}
+        ${d.flag_counts.graduation_risk ? alert("error", "event_busy", "Graduation timeline risk", `<strong>${d.flag_counts.graduation_risk}</strong> students can't fit their remaining required courses before their expected graduation term, given prerequisites and when courses are offered.`, link("graduation_risk", "Review these students", "text-error")) : ""}
+        ${d.course_demand.length ? alert("gold", "inventory_2", `${esc(d.next_term)} course demand`, `Remaining required courses students can take next term:<br>${d.course_demand.slice(0, 4).map((c) => `<strong class="text-on-surface">${esc(c.course_id)}</strong> ${esc(c.title)} — ${c.students.toLocaleString()} students`).join("<br>")}`) : ""}
+        ${alert("", "work_off", "Experience gap", `<strong>${d.flag_counts.no_internship}</strong> juniors and seniors have no internship or co-op on record.`, link("no_internship", "Review", "text-secondary"))}
+        ${d.open_meeting_requests ? alert("", "mark_email_unread", "Meeting requests", `<strong>${d.open_meeting_requests}</strong> student${d.open_meeting_requests === 1 ? " hasn't" : "s haven't"} booked since you asked.`) : ""}
+      </div>`;
+    $("alerts").querySelectorAll("[data-alert-flag]").forEach((b) => b.addEventListener("click", () => {
+      queue.flag = b.dataset.alertFlag; queue.page = 1; loadQueue();
+      $("queue").scrollIntoView({ behavior: "smooth" });
+    }));
+  }
+
+  // ---------------- Load ----------------
+  async function refreshSummary() {
+    const [d, reqs] = await Promise.all([api("/api/advisor-dashboard"), api("/api/meeting-requests")]);
+    dash = d;
+    openRequests = new Map(reqs.requests.map((r) => [r.campus_id, r]));
+    renderSummary(); renderAlerts();
+  }
+
+  async function init() {
+    try {
+      $("page-error").classList.add("hidden");
+      $("kpis").innerHTML = `<div class="text-sm text-on-surface-variant">Building caseload analytics (first load takes a few seconds)…</div>`;
+      await refreshSummary();
+      renderPathways();
+      await Promise.all([loadQueue(), renderSchedule()]);
+      if (location.hash) document.querySelector(location.hash)?.scrollIntoView();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("queue-prev").addEventListener("click", () => { queue.page--; loadQueue(); });
+  $("queue-next").addEventListener("click", () => { queue.page++; loadQueue(); });
+  $("btn-queue").addEventListener("click", (e) => { e.preventDefault(); $("queue").scrollIntoView({ behavior: "smooth" }); });
+  init();
+})();
+</script>
+</body></html>

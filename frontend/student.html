@@ -1,0 +1,387 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Student Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+
+<!-- ================= MAIN ================= -->
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+<div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+
+  <!-- ============ LEFT COLUMN ============ -->
+  <div class="xl:col-span-8 flex flex-col gap-space-lg min-w-0">
+
+    <!-- CARD 1: ACADEMIC PROFILE -->
+    <section class="bg-surface-container-low rounded-xl shadow-xl p-space-lg flex flex-col gap-space-md relative overflow-hidden border border-surface-container">
+      <div class="absolute -right-16 -top-16 w-56 h-56 bg-primary-container/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-surface-container/60">
+        <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-primary-container"></span><h2 class="font-label-code text-xs text-secondary tracking-widest uppercase font-bold" id="profile-title">ACADEMIC PROFILE</h2></div>
+        <div class="flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded-md font-label-sm text-xs text-on-surface-variant border border-outline-variant/30"><span class="material-symbols-outlined text-sm text-primary">database</span><span>FROM UNIVERSITY RECORDS</span></div>
+      </div>
+      <div id="profile-body" class="text-sm text-on-surface-variant">Loading your profile…</div>
+    </section>
+
+    <!-- CARD 2: SKILLS -->
+    <section class="bg-surface-container-low rounded-xl shadow-xl p-space-lg flex flex-col gap-space-md border border-surface-container">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-secondary"></span><h3 class="font-label-code text-xs text-secondary tracking-widest uppercase font-bold">VERIFIED COURSE SKILLS &amp; COMPETENCIES</h3></div>
+        <span class="font-label-code text-xs text-on-surface-variant bg-surface-container px-3 py-1 rounded-md border border-outline-variant/20" id="skills-count">—</span>
+      </div>
+      <div id="skills-body" class="text-sm text-on-surface-variant">Loading…</div>
+    </section>
+
+    <!-- CARD 3: CAREER MATCHES -->
+    <section class="bg-surface-container-low rounded-xl shadow-xl p-space-lg flex flex-col gap-space-md border border-surface-container">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-primary"></span>
+          <div>
+            <h3 class="font-label-code text-xs text-secondary tracking-widest uppercase font-bold">CAREER PATHWAY ALIGNMENT</h3>
+            <p class="text-xs text-on-surface-variant mt-0.5">Skill overlap with what alumni entry-level roles asked for · click a career to focus on it</p>
+          </div>
+        </div>
+        <span class="font-label-sm text-xs text-primary font-mono bg-surface-container px-3 py-1 rounded border border-outline-variant/30 uppercase" id="matches-major">—</span>
+      </div>
+      <div id="matches-body" class="flex flex-col gap-4 pt-2 text-sm text-on-surface-variant">Loading…</div>
+    </section>
+  </div>
+
+  <!-- ============ RIGHT COLUMN: AI ADVISOR ============ -->
+  <div class="xl:col-span-4 flex flex-col xl:sticky xl:top-20">
+    <section class="bg-surface-container-low rounded-xl shadow-2xl p-space-lg flex flex-col justify-between h-[760px] xl:h-[calc(100vh-7rem)] relative overflow-hidden border border-surface-container">
+      <div class="absolute -right-20 top-20 w-48 h-48 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="flex flex-col gap-space-sm pb-space-md">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center border border-outline-variant/30 overflow-hidden">
+              <img alt="Retriever Mascot" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK-faLoVkY4k7-6V12LiaVh7wWvIOi6tjTbeAtoO-lizeXTKvFutdmxS9SbCwx4GvxO5AMFVEa5YPvpt0fKZ9q8kV12KKJLQMVtHOpCGdcG7NqXxGKbD8JEiA-uTKdD0aalPB0jEhoTrTuTPpofTP8rLQwwJ-q-UM8yJTrDG9lN004k7ZyFXHHnLf5Mph0tiyazJqdwGiCJMOelZ-okxTAlAHMpmwFdeQvJPQDCUakWAEQ2pDQLkIYKyde9Gc8YIq4eAg">
+            </div>
+            <div>
+              <h3 class="font-headline-md text-base font-bold text-on-surface tracking-tight">UMBC Virtual Advisor</h3>
+              <span class="text-xs text-on-surface-variant">Grounded in your records &amp; alumni outcomes</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 bg-surface-container px-2.5 py-1 rounded-full border border-outline-variant/20" id="ai-status">
+            <span class="h-2 w-2 rounded-full bg-outline"></span><span class="font-label-code text-[11px] text-on-surface-variant font-bold">…</span>
+          </div>
+        </div>
+        <div class="bg-surface-container p-3 rounded-lg border border-outline-variant/20">
+          <p class="text-xs text-on-surface-variant leading-relaxed">
+            Ask about courses, career pathways, internships, or salaries. Try:
+            <button type="button" class="text-left text-primary font-medium hover:underline block mt-1" id="sample-prompt">“I'm interested in cybersecurity — what should I take next semester?”</button>
+          </p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-space-md overflow-y-auto py-space-sm flex-1 pr-1" id="chat-stream">
+        <div class="flex items-center gap-1.5 px-1 text-xs text-on-surface-variant"><span class="material-symbols-outlined text-sm text-primary">school</span><span>Referencing the UMBC course catalog and your academic record</span></div>
+      </div>
+
+      <div class="flex flex-col gap-2.5 pt-space-md border-t border-surface-container/60">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-nowrap" id="quick-chips">
+          <button class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant hover:text-primary hover:bg-surface-container-high text-xs transition-colors shadow-sm border border-outline-variant/20" type="button" data-prompt="Which 400-level electives fit my career goals?">400-level Electives</button>
+          <button class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant hover:text-primary hover:bg-surface-container-high text-xs transition-colors shadow-sm border border-outline-variant/20" type="button" data-prompt="What should I take in Spring 2027?">Spring 2027 Schedule</button>
+          <button class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant hover:text-primary hover:bg-surface-container-high text-xs transition-colors shadow-sm border border-outline-variant/20" type="button" data-prompt="How can I improve my chances of landing an internship?">Internship Tips</button>
+        </div>
+        <form class="relative flex items-center gap-2" id="chat-form">
+          <input class="w-full bg-surface-container-lowest text-on-surface text-sm px-3.5 py-2.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary shadow-inner placeholder:text-on-surface-variant/50 border border-outline-variant/30" id="advisor-input" placeholder="Ask your academic advisor..." type="text" maxlength="2000" autocomplete="off">
+          <button id="send-btn" class="px-4 py-2.5 rounded-lg bg-primary-container hover:bg-secondary text-on-primary font-semibold text-xs tracking-wide transition-all shadow-[0_0_12px_rgba(255,179,0,0.35)] flex items-center justify-center shrink-0 disabled:opacity-50" type="submit">Send</button>
+        </form>
+        <div class="flex items-center justify-between text-on-surface-variant text-[11px] pt-1 px-1 gap-2">
+          <div class="flex items-center gap-1.5 min-w-0"><span class="material-symbols-outlined text-sm text-secondary">bookmark</span><span class="truncate" id="memory-summary">Loading advisor memory…</span></div>
+          <button type="button" class="hover:text-primary transition-colors shrink-0" id="memory-toggle">View</button>
+        </div>
+        <div id="memory-list" class="hidden text-[11px] text-on-surface-variant bg-surface-container rounded-lg border border-outline-variant/20 p-2.5 max-h-32 overflow-y-auto"></div>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+</main>
+
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, md, api, money } = App;
+  const session = Shell.mount({ active: "overview" });
+  if (!session) return;
+  const me = session.user.campus_id;
+
+  const CARD = "bg-surface-container p-4 rounded-xl border border-outline-variant/20";
+  const MATCHES_SHOWN = 4;
+  let showAllMatches = false;
+  let lastDashboard = null;
+
+  // ---------------- Profile ----------------
+  function renderProfile(d) {
+    const s = d.student;
+    Shell.setStudent(s);
+    $("profile-title").textContent = `ACADEMIC PROFILE • ${s.major.toUpperCase()}${s.track !== "General" ? ` (${s.track.toUpperCase()})` : ""}`;
+    $("matches-major").textContent = `${s.major} curriculum`;
+
+    const pctDone = Math.min(100, (s.credits_earned / s.credits_required) * 100);
+    const standingOk = s.academic_standing === "Good Standing";
+    const exp = (items, icon, color, empty) => items.length ? items.map((x) => `
+      <div class="${CARD} flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center ${color} shrink-0"><span class="material-symbols-outlined text-xl">${icon}</span></div>
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2"><span class="text-sm font-bold text-on-surface">${esc(x.name)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${esc(x.outcome)}</span></div>
+          <p class="text-xs text-on-surface-variant mt-0.5">${esc(x.organization)} • ${esc(x.term)}${x.experience_type === "Co-op" ? " • Co-op" : ""}</p>
+        </div>
+      </div>`).join("") : `<div class="${CARD} text-xs text-on-surface-variant flex items-center gap-2"><span class="material-symbols-outlined text-base ${color}">${icon}</span>${empty}</div>`;
+
+    $("profile-body").innerHTML = `
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+        <div class="${CARD} flex flex-col justify-between shadow-sm">
+          <div><span class="text-xs uppercase font-semibold text-on-surface-variant tracking-wider block mb-1">Cumulative GPA</span>
+            <div class="flex items-baseline gap-1.5">${s.gpa == null
+              ? `<span class="text-3xl font-extrabold text-on-surface tracking-tight">—</span><span class="text-xs text-on-surface-variant">First term</span>`
+              : `<span class="text-3xl font-extrabold text-on-surface tracking-tight">${s.gpa.toFixed(2)}</span><span class="font-label-code text-xs text-on-surface-variant">/ 4.00</span>`}</div></div>
+          <div class="mt-3 pt-2 border-t border-outline-variant/20 flex items-center justify-between">
+            <span class="inline-flex items-center gap-1 text-xs ${standingOk ? "text-emerald-400" : "text-error"} font-medium"><span class="h-1.5 w-1.5 rounded-full ${standingOk ? "bg-emerald-400" : "bg-error"}"></span>${esc(s.academic_standing)}</span>
+            ${s.major_gpa != null ? `<span class="text-[11px] text-on-surface-variant">Major ${s.major_gpa.toFixed(2)}</span>` : ""}
+          </div>
+        </div>
+        <div class="${CARD} flex flex-col justify-between shadow-sm">
+          <div><span class="text-xs uppercase font-semibold text-on-surface-variant tracking-wider block mb-1">Degree Progress</span>
+            <div class="flex items-baseline gap-1.5"><span class="text-3xl font-extrabold text-primary tracking-tight">${s.credits_earned}</span><span class="font-label-code text-xs text-on-surface-variant">/ ${s.credits_required} Credits</span></div></div>
+          <div class="mt-3 pt-2 border-t border-outline-variant/20 flex flex-col gap-1.5">
+            <div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden"><div class="bg-primary-container h-full rounded-full shadow-[0_0_8px_rgba(255,179,0,0.6)]" style="width:${pctDone}%"></div></div>
+            <div class="flex justify-between items-center text-[11px]"><span class="text-secondary font-medium">${pctDone.toFixed(1)}% Complete</span>${s.credits_in_progress ? `<span class="text-tertiary font-medium">+${s.credits_in_progress} in progress</span>` : ""}</div>
+          </div>
+        </div>
+        <div class="${CARD} flex flex-col justify-between shadow-sm">
+          <div><span class="text-xs uppercase font-semibold text-on-surface-variant tracking-wider block mb-1">Class Standing</span>
+            <span class="text-3xl font-extrabold text-on-surface tracking-tight">${esc(s.class_level)}</span></div>
+          <div class="mt-3 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs gap-2"><span class="text-on-surface-variant">Expected grad:</span><span class="font-semibold text-primary">${esc(s.expected_graduation_term)}</span></div>
+        </div>
+        <div class="${CARD} flex flex-col justify-between shadow-sm">
+          <div><span class="text-xs uppercase font-semibold text-on-surface-variant tracking-wider block mb-1">Experiential Records</span>
+            <div class="flex items-baseline gap-2"><span class="text-3xl font-extrabold text-on-surface tracking-tight">${s.internship_count + s.credential_count}</span><span class="text-xs text-on-surface-variant">+ ${s.engagement_activity_count} activities</span></div></div>
+          <div class="mt-3 pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs">
+            <span class="text-secondary font-medium">${s.internship_count} Internship${s.internship_count === 1 ? "" : "s"}</span><span class="text-on-surface-variant">•</span>
+            <span class="text-tertiary font-medium">${s.credential_count} Certification${s.credential_count === 1 ? "" : "s"}</span>
+          </div>
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+        <div class="flex flex-col gap-3">${exp(s.internships, "work", "text-primary", "No internships or co-ops recorded yet.")}</div>
+        <div class="flex flex-col gap-3">${exp(s.credentials, "verified_user", "text-secondary", "No certifications recorded yet.")}</div>
+      </div>`;
+  }
+
+  // ---------------- Skills ----------------
+  function renderSkills(d) {
+    const s = d.student;
+    const pill = (skill, courses, active) => `<span title="From ${esc(courses.join(", "))}" class="px-3 py-1.5 rounded-lg ${active
+      ? "bg-surface-container-high text-secondary border-secondary/20 shadow-sm"
+      : "bg-surface-container text-on-surface hover:text-primary border-outline-variant/20"} text-xs font-medium transition-colors border">${esc(skill)}</span>`;
+    $("skills-count").textContent = `${d.skills.length} Completed • ${d.in_progress_skills.length} In Progress`;
+    $("skills-body").innerHTML = `
+      <div class="flex flex-col gap-3 pt-1">
+        <div class="text-xs uppercase font-semibold text-on-surface-variant tracking-wider">From completed courses:</div>
+        <div class="flex flex-wrap gap-2">${d.skills.length ? d.skills.map((x) => pill(x.skill, x.courses, false)).join("")
+          : `<span class="text-xs text-on-surface-variant">No completed coursework yet — skills appear once your first courses are graded.</span>`}</div>
+      </div>
+      ${s.in_progress_courses.length ? `
+      <div class="pt-3 mt-4 flex flex-col gap-2 border-t border-surface-container/60">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-bold text-secondary tracking-wide uppercase">Current semester (Fall 2026 • ${s.in_progress_courses.length} active courses)</span>
+          <span class="text-[11px] text-on-surface-variant">+${s.credits_in_progress} credits in progress</span>
+        </div>
+        <div class="flex flex-wrap gap-2">${d.in_progress_skills.length ? d.in_progress_skills.map((x) => pill(x.skill, x.courses, true)).join("")
+          : `<span class="text-xs text-on-surface-variant">Current courses reinforce skills you already have.</span>`}</div>
+        <div class="text-[11px] text-on-surface-variant">${s.in_progress_courses.map((c) => `${esc(c.course_id)} ${esc(c.title)}`).join(" · ")}</div>
+      </div>` : ""}`;
+  }
+
+  // ---------------- Career matches ----------------
+  function renderMatches(d) {
+    const matches = showAllMatches ? d.career_matches : d.career_matches.slice(0, MATCHES_SHOWN);
+    const top = d.career_matches[0];
+    const row = (m) => {
+      const selected = m.career === d.selected_career;
+      const isTop = m === top && m.score > 0;
+      return `
+      <button type="button" data-career="${esc(m.career)}" class="text-left ${CARD} flex flex-col gap-2.5 ${selected ? "border-primary-container/60 shadow-[0_0_0_1px_rgba(255,179,0,0.25)]" : "hover:border-outline-variant/50"} transition-colors">
+        <div class="flex flex-wrap items-center justify-between gap-2 w-full">
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="text-base font-bold text-on-surface">${esc(m.career)}</span>
+            ${isTop ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-container/20 text-primary">TOP MATCH</span>` : ""}
+            ${selected ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-surface-container-highest text-secondary border border-secondary/30">FOCUS</span>` : ""}
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="px-2.5 py-0.5 rounded-full font-bold bg-primary-container/10 text-primary border border-primary-container/20">${m.score} now</span>
+            ${m.projected_score > m.score ? `<span class="px-2.5 py-0.5 rounded-full font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">${m.projected_score} after this term</span>` : ""}
+          </div>
+        </div>
+        <div class="relative w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden" aria-hidden="true">
+          <div class="absolute left-0 top-0 bottom-0 bg-emerald-400/35 rounded-full" style="width:${m.projected_score}%"></div>
+          <div class="absolute left-0 top-0 bottom-0 bg-primary-container rounded-full shadow-[0_0_8px_rgba(255,179,0,0.6)]" style="width:${m.score}%"></div>
+        </div>
+        ${m.missing_core_skills.length ? `<div class="text-[11px] text-on-surface-variant">Core skills to build: <span class="text-secondary">${esc(m.missing_core_skills.join(", "))}</span></div>` : `<div class="text-[11px] text-emerald-400">All core skills covered</div>`}
+      </button>`;
+    };
+
+    const p = d.pathway;
+    const e = d.salary && d.salary.entry_level;
+    const next = p ? p.recommended_courses.filter((c) => c.status !== "needs_prerequisites").slice(0, 3) : [];
+    const blocked = p ? p.prerequisite_steps.slice(0, 3) : [];
+    const focus = p ? `
+      <div class="bg-surface-container/60 p-4 rounded-xl border border-secondary/30 flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2"><span class="text-base font-bold text-on-surface">${esc(p.career)}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-surface-container-highest text-secondary border border-secondary/30">FOCUS PATHWAY</span></div>
+          ${e ? `<span class="text-xs text-primary font-semibold">Alumni entry-level median ${money(e.median)} <span class="text-on-surface-variant font-normal">(n=${e.sample_size}, nominal)</span></span>` : ""}
+        </div>
+        ${next.length ? `<div class="text-xs text-on-surface-variant">Recommended next registrations for ${esc(p.next_term)}:</div>
+          <div class="flex flex-col gap-2 pl-3 border-l-2 border-primary/60 bg-surface-container-high/40 p-2.5 rounded-r-lg">
+            ${next.map((c) => `<div class="text-xs leading-normal"><strong class="text-primary font-mono">${esc(c.course_id)}</strong> — ${esc(c.title)} (${c.credits} cr)
+              <span class="text-on-surface-variant">· builds ${esc(c.skills_gained.join(", "))}${c.status === "eligible_after_current_term" ? ` · after ${esc(c.missing_prerequisites.join(", "))}` : ""}${c.offered_next_term ? "" : ` · usually ${esc(c.terms_offered.join("/"))}`}</span></div>`).join("")}
+          </div>`
+        : blocked.length ? `<div class="text-xs text-on-surface-variant">Take these first to unlock ${esc(p.career)} courses:</div>
+          <div class="flex flex-col gap-2 pl-3 border-l-2 border-primary/60 bg-surface-container-high/40 p-2.5 rounded-r-lg">
+            ${blocked.map((st) => `<div class="text-xs"><strong class="text-primary font-mono">${esc(st.course_id)}</strong> — ${esc(st.title)} <span class="text-on-surface-variant">· unlocks ${esc(st.unlocks.join(", "))}</span></div>`).join("")}
+          </div>`
+        : `<div class="text-xs text-on-surface-variant">No additional catalog courses cover the remaining skills.</div>`}
+      </div>` : "";
+
+    const hidden = d.career_matches.length - MATCHES_SHOWN;
+    $("matches-body").innerHTML = `
+      ${matches.map(row).join("")}
+      ${focus}
+      <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-surface-container/60">
+        <span class="text-[11px] text-on-surface-variant max-w-xl">${esc(d.match_score_note)}</span>
+        ${hidden > 0 ? `<button type="button" id="toggle-matches" class="text-xs text-primary hover:underline font-medium flex items-center gap-1">
+          ${showAllMatches ? "Show top 4" : `View ${hidden} additional pathway${hidden === 1 ? "" : "s"}`}
+          <span class="material-symbols-outlined text-xs">${showAllMatches ? "expand_less" : "expand_more"}</span></button>` : ""}
+      </div>`;
+    $("matches-body").querySelectorAll("[data-career]").forEach((b) => b.addEventListener("click", () => loadDashboard(b.dataset.career)));
+    const t = $("toggle-matches");
+    if (t) t.addEventListener("click", () => { showAllMatches = !showAllMatches; renderMatches(lastDashboard); });
+  }
+
+  async function loadDashboard(career = null) {
+    try {
+      const q = career ? `?career=${encodeURIComponent(career)}` : "";
+      const d = await api(`/api/dashboard/${encodeURIComponent(me)}${q}`);
+      lastDashboard = d;
+      if (d.selected_career && !d.career_matches.slice(0, MATCHES_SHOWN).some((m) => m.career === d.selected_career)) showAllMatches = true;
+      renderProfile(d); renderSkills(d); renderMatches(d);
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  // ---------------- Advisor chat ----------------
+  const stream = $("chat-stream");
+  function scrollChat() { stream.scrollTop = stream.scrollHeight; }
+  function userBubble(text) {
+    stream.insertAdjacentHTML("beforeend", `<div class="flex justify-end"><div class="max-w-[85%] bg-surface-container-high text-on-surface p-3.5 rounded-xl rounded-tr-none shadow-md text-sm leading-relaxed border border-outline-variant/20">${esc(text)}</div></div>`);
+    scrollChat();
+  }
+  function advisorBubble() {
+    const wrap = document.createElement("div");
+    wrap.className = "flex flex-col gap-1.5 items-start";
+    wrap.innerHTML = `
+      <div class="flex items-center gap-1.5 text-primary text-xs font-semibold pl-1"><span class="material-symbols-outlined text-base">support_agent</span><span>Retriever Advisor</span></div>
+      <div class="bubble max-w-[95%] bg-surface-container text-on-surface p-3.5 rounded-xl rounded-tl-none shadow-md text-sm leading-relaxed border border-outline-variant/20">
+        <span class="typing text-on-surface-variant"><span>●</span><span>●</span><span>●</span></span>
+      </div>`;
+    stream.appendChild(wrap); scrollChat();
+    return wrap.querySelector(".bubble");
+  }
+
+  async function send(text) {
+    text = text.trim();
+    if (!text) return;
+    $("advisor-input").value = ""; $("send-btn").disabled = true;
+    userBubble(text);
+    const bubble = advisorBubble();
+    try {
+      const r = await api("/api/advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ campus_id: me, message: text }),
+      });
+      const notes = [];
+      if (r.focus_career) notes.push(`<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-xs text-secondary">alt_route</span>Focus: ${esc(r.focus_career)}</span>`);
+      if (r.memories_saved.length) notes.push(`<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-xs text-secondary">bookmark_add</span>Remembered: ${r.memories_saved.map((m) => esc(m.content)).join(" · ")}</span>`);
+      if (r.services.gemini !== "ok") notes.push(`<span class="text-secondary">AI unavailable — summary from your records</span>`);
+      bubble.innerHTML = `<div class="md">${md(r.reply)}</div>${notes.length ? `<div class="mt-3 pt-2 border-t border-outline-variant/20 flex flex-col gap-1 text-[11px] text-on-surface-variant">${notes.join("")}</div>` : ""}`;
+      if (r.memories_saved.length) loadMemories();
+    } catch (err) {
+      bubble.innerHTML = `<span class="text-error">${esc(err.message)}</span>`;
+    } finally {
+      $("send-btn").disabled = false; $("advisor-input").focus(); scrollChat();
+    }
+  }
+
+  async function loadMemories() {
+    try {
+      const m = await api(`/api/advisor/${encodeURIComponent(me)}/memories`);
+      if (m.backboard !== "ok") {
+        $("memory-summary").innerHTML = `<strong>Memory:</strong> ${m.backboard === "not_configured" ? "not configured" : "unavailable"}`;
+        $("memory-list").innerHTML = ""; return;
+      }
+      $("memory-summary").innerHTML = m.memories.length
+        ? `<strong>Advisor remembers:</strong> ${esc(m.memories[0].content)}${m.memories.length > 1 ? ` (+${m.memories.length - 1} more)` : ""}`
+        : `<strong>Advisor memory:</strong> nothing saved yet`;
+      $("memory-list").innerHTML = m.memories.length
+        ? m.memories.map((x) => `<div class="py-0.5">• ${esc(x.content)}${x.category ? ` <span class="text-outline">(${esc(x.category.replace("_", " "))})</span>` : ""}</div>`).join("")
+        : "Share your interests, goals, or preferences in chat and the advisor will remember them. It never stores grades or GPA.";
+    } catch { $("memory-summary").textContent = "Advisor memory unavailable"; }
+  }
+
+  async function loadAiStatus() {
+    try {
+      const h = await api("/api/health");
+      const on = h.services.gemini.configured;
+      $("ai-status").innerHTML = `<span class="h-2 w-2 rounded-full ${on ? "bg-emerald-400" : "bg-secondary"}"></span><span class="font-label-code text-[11px] ${on ? "text-emerald-400" : "text-secondary"} font-bold">${on ? "ONLINE" : "SUMMARY MODE"}</span>`;
+    } catch {
+      $("ai-status").innerHTML = `<span class="h-2 w-2 rounded-full bg-error"></span><span class="font-label-code text-[11px] text-error font-bold">OFFLINE</span>`;
+    }
+  }
+
+  // ---------------- Wiring ----------------
+  $("chat-form").addEventListener("submit", (e) => { e.preventDefault(); send($("advisor-input").value); });
+  $("sample-prompt").addEventListener("click", () => { $("advisor-input").value = "I'm interested in cybersecurity — what should I take next semester?"; $("advisor-input").focus(); });
+  $("quick-chips").addEventListener("click", (e) => { const b = e.target.closest("[data-prompt]"); if (b && !$("send-btn").disabled) send(b.dataset.prompt); });
+  $("memory-toggle").addEventListener("click", () => {
+    const hidden = $("memory-list").classList.toggle("hidden");
+    $("memory-toggle").textContent = hidden ? "View" : "Hide";
+  });
+
+  loadDashboard();
+  loadMemories();
+  loadAiStatus();
+
+  // Other pages can hand over a question: student.html?ask=... (sent once, then removed from the URL).
+  const ask = new URLSearchParams(location.search).get("ask");
+  if (ask) {
+    history.replaceState(null, "", "student.html" + App.apiQuery());
+    send(ask.slice(0, 2000));
+  }
+})();
+</script>
+</body></html>

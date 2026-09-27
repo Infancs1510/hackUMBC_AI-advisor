@@ -1,0 +1,27 @@
+/* Smooth page-to-page transitions, shared by every page.
+   Browsers with cross-document View Transitions (Chrome/Edge 126+, Safari 18.2+) cross-fade
+   between pages while the shell's header and sidebar stay put; others get a plain fade-in. */
+
+@view-transition { navigation: auto; }
+
+/* Keep the shell chrome still so only the page content animates. */
+#shell header { view-transition-name: shell-header; }
+#shell aside { view-transition-name: shell-aside; }
+
+::view-transition-old(root) { animation: 160ms ease-in both page-out; }
+::view-transition-new(root) { animation: 240ms ease-out both page-in; }
+
+@keyframes page-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes page-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Fallback for browsers without cross-document View Transitions. Opacity only: a transform
+   on <body> would make it the containing block for the fixed header and sidebar. */
+@supports not (view-transition-name: none) {
+  body { animation: 240ms ease-out both page-fade-in; }
+}
+@keyframes page-fade-in { from { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  body { animation: none !important; }
+}

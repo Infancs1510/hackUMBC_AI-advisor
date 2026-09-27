@@ -61,9 +61,14 @@ class FakeBackboardServer:
             self.assistants[body["name"]] = aid
             return httpx.Response(200, json={"assistant_id": aid, "name": body["name"]})
         aid = path.split("/")[2]
+        if request.method == "DELETE":
+            memory_id = path.rsplit("/", 1)[1]
+            self.memories[aid] = [m for m in self.memories.get(aid, []) if m["id"] != memory_id]
+            return httpx.Response(200, json={"success": True, "message": "deleted"})
         if request.method == "POST" and path.endswith("/memories"):
             body = json.loads(request.content)
-            self.memories.setdefault(aid, []).append({"id": "m", **body})
+            self.next_id = getattr(self, "next_id", 0) + 1
+            self.memories.setdefault(aid, []).append({"id": f"m{self.next_id}", **body})
             return httpx.Response(201, json={})
         if path.endswith("/memories/search") or path.endswith("/memories"):
             items = self.memories.get(aid, [])
@@ -133,3 +138,15 @@ def test_gemini_no_fallback_on_client_errors():
     with pytest.raises(GeminiError):
         run(client.generate("s", "p"))
     assert len(seen) == 1
+
+
+def test_backboard_career_goal_replaces_previous():
+    server = FakeBackboardServer()
+    memory = BackboardMemory("bb-key", "https://bb.test/api", transport=httpx.MockTransport(server))
+    assert run(memory.get_career_goal("CID-111111")) is None
+    run(memory.add("CID-111111", MemoryItem(content="Prefers remote work.", category="preference")))
+    run(memory.set_career_goal("CID-111111", "Cybersecurity"))
+    run(memory.set_career_goal("CID-111111", "Health IT"))
+    assert run(memory.get_career_goal("CID-111111")) == "Health IT"
+    contents = [m["content"] for m in next(iter(server.memories.values()))]
+    assert contents == ["Prefers remote work.", "Primary career goal: Health IT."]

@@ -1,0 +1,462 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Advisor Appointments</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Heading -->
+  <section class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-space-xs text-secondary font-label-code text-[11px] tracking-wider uppercase mb-1 font-bold">
+        <span class="w-2 h-2 rounded-full bg-primary-container"></span>Academic advising
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Advising <span class="text-primary-container">Appointments</span></h1>
+      <p class="text-body-md text-on-surface-variant mt-1">Book time with your advisor. When you book, your advisor gets a brief from your records — GPA, credits, remaining requirements, and career direction — so the meeting starts where you are.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-space-xs no-print">
+      <a data-nav="degree.html" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors border border-outline-variant/30"><span class="material-symbols-outlined text-[18px] text-secondary">fact_check</span>Degree audit</a>
+      <a data-nav="pathways.html" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors border border-outline-variant/30"><span class="material-symbols-outlined text-[18px] text-secondary">account_tree</span>Course roadmap</a>
+      <button onclick="window.print()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors border border-outline-variant/30" type="button"><span class="material-symbols-outlined text-[18px] text-secondary">download_for_offline</span>Print summary (PDF)</button>
+    </div>
+  </section>
+
+  <!-- Meeting requests from the advisor -->
+  <section id="requests" class="hidden flex flex-col gap-space-sm"></section>
+
+  <!-- Upcoming appointment banner -->
+  <section class="relative overflow-hidden rounded-xl bg-surface-container-low border border-surface-container shadow-xl" id="upcoming">
+    <div class="p-space-lg text-sm text-on-surface-variant">Loading…</div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <!-- Booking form -->
+    <section class="lg:col-span-7 flex flex-col gap-space-lg no-print">
+      <form id="booking" class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col gap-space-lg">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-headline-md font-bold text-on-surface" id="form-title">Book an Advising Session</h2>
+            <p class="text-xs text-on-surface-variant" id="form-sub">30-minute sessions · times shown in Eastern Time</p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-primary-container/15 text-primary text-[11px] font-bold" id="step-badge">Step 1 of 4</span>
+        </div>
+
+        <fieldset class="flex flex-col gap-space-xs">
+          <legend class="text-sm text-on-surface font-bold mb-2 flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[11px]">1</span>What would you like to discuss?</legend>
+          <div class="grid grid-cols-1 gap-2.5" id="reasons"></div>
+        </fieldset>
+
+        <fieldset class="flex flex-col gap-space-xs">
+          <legend class="text-sm text-on-surface font-bold mb-2 flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[11px]">2</span>Meeting format</legend>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="modalities"></div>
+        </fieldset>
+
+        <div class="flex flex-col gap-space-xs">
+          <div class="text-sm text-on-surface font-bold mb-2 flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[11px]">3</span>Choose a date &amp; time <span class="text-xs font-normal text-on-surface-variant" id="range-label"></span></div>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2" role="group" aria-label="Appointment day" id="days"></div>
+          <div class="mt-2">
+            <div class="text-xs text-on-surface-variant mb-2" id="slots-label">Pick a day to see open times.</div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" role="group" aria-label="Available times" id="times"></div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm text-on-surface font-bold flex items-center justify-between" for="notes">
+            <span class="flex items-center gap-2"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center text-[11px]">4</span>Notes or questions for your advisor</span>
+            <span class="text-[11px] text-on-surface-variant font-normal">Optional</span>
+          </label>
+          <textarea id="notes" maxlength="1000" rows="3" class="w-full p-3 rounded-lg bg-surface-container text-on-surface placeholder:text-outline text-sm border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary resize-none"></textarea>
+        </div>
+
+        <div id="form-error" class="hidden text-xs rounded-lg px-3 py-2 bg-error-container/30 border border-error/40 text-error"></div>
+        <div class="pt-2 flex flex-col gap-space-sm">
+          <div class="flex flex-col sm:flex-row gap-space-sm">
+            <button id="submit" type="submit" class="flex-1 py-3.5 px-6 rounded-lg bg-primary-container hover:bg-secondary text-on-primary text-base font-extrabold flex items-center justify-center gap-2 shadow-[0_0_16px_rgba(255,179,0,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              <span id="submit-text">Confirm appointment</span><span class="material-symbols-outlined text-[22px]">arrow_forward</span>
+            </button>
+            <button id="cancel-edit" type="button" class="hidden py-3.5 px-6 rounded-lg bg-surface-container text-on-surface text-sm font-semibold border border-outline-variant/30">Keep current time</button>
+          </div>
+          <div class="flex items-center justify-center gap-1.5 text-center text-[11px] text-on-surface-variant">
+            <span class="material-symbols-outlined text-[16px] text-secondary">info</span>
+            This demo doesn't send email — use “Add to calendar” after booking.
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Right column -->
+    <aside class="lg:col-span-5 flex flex-col gap-space-lg">
+      <div class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col gap-space-md" id="advisor-card">
+        <div class="text-sm text-on-surface-variant">Loading…</div>
+      </div>
+      <div class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col gap-space-md no-print" id="prep">
+        <div class="text-sm text-on-surface-variant">Loading…</div>
+      </div>
+      <div class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="history"></div>
+    </aside>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api, apiQuery } = App;
+  const session = Shell.mount({ active: "appointments" });
+  if (!session) return;
+  const me = encodeURIComponent(session.user.campus_id);
+  const askLink = (q) => `student.html?ask=${encodeURIComponent(q)}${apiQuery().replace("?", "&")}`;
+  document.querySelectorAll("[data-nav]").forEach((a) => (a.href = a.dataset.nav + apiQuery()));
+
+  const REASONS = [
+    { value: "course_planning", title: "Course planning for next term", desc: "Pick Spring 2027 courses, check prerequisites, and balance your load." },
+    { value: "career_planning", title: "Career planning & track electives", desc: "Talk through career paths, electives, and your roadmap." },
+    { value: "degree_check", title: "Degree progress check", desc: "Review remaining requirements, credits, and your graduation timeline." },
+    { value: "internship_planning", title: "Internship & experience planning", desc: "Internships, research, certifications, and building experience." },
+  ];
+  const MODALITIES = [
+    { value: "in_person", icon: "apartment", title: "In person", desc: "Location confirmed by your advisor" },
+    { value: "virtual", icon: "video_camera_front", title: "Virtual", desc: "Video link shared by your advisor" },
+  ];
+
+  const state = { reason: "course_planning", modality: "in_person", day: null, start: null, editing: null };
+  let slotData = null, upcoming = null, dash = null, audit = null;
+
+  const fmt = (iso, opts) => new Intl.DateTimeFormat("en-US", { timeZone: slotData ? slotData.timezone : "America/New_York", ...opts }).format(new Date(iso));
+  const when = (iso) => `${fmt(iso, { weekday: "long", month: "long", day: "numeric" })} at ${fmt(iso, { hour: "numeric", minute: "2-digit" })}`;
+  const reasonTitle = (v) => (REASONS.find((r) => r.value === v) || {}).title || v;
+
+  // ---------------- Form ----------------
+  function option(name, item, checked, extra = "") {
+    return `
+      <label class="relative flex items-start gap-3 p-3.5 rounded-lg cursor-pointer transition-colors border ${checked ? "bg-primary-container/10 border-primary-container/50" : "bg-surface-container border-outline-variant/20 hover:border-outline-variant/50"}">
+        <input type="radio" name="${name}" value="${item.value}" ${checked ? "checked" : ""} class="mt-1 text-primary-container bg-surface-container border-outline-variant focus:ring-primary-container">
+        <div class="flex-1">
+          <div class="flex items-center justify-between gap-2"><span class="text-sm font-bold text-on-surface inline-flex items-center gap-1">${item.icon ? `<span class="material-symbols-outlined text-[18px] text-secondary">${item.icon}</span>` : ""}${esc(item.title)}</span>${extra}</div>
+          <p class="text-xs text-on-surface-variant">${esc(item.desc)}</p>
+        </div>
+      </label>`;
+  }
+
+  function renderOptions() {
+    $("reasons").innerHTML = REASONS.map((r) => option("reason", r, r.value === state.reason,
+      r.value === suggestedReason() ? `<span class="text-[10px] text-primary font-bold uppercase tracking-wide">Suggested</span>` : "")).join("");
+    $("modalities").innerHTML = MODALITIES.map((m) => option("modality", m, m.value === state.modality)).join("");
+    document.querySelectorAll('input[name="reason"]').forEach((i) => i.addEventListener("change", () => { state.reason = i.value; renderOptions(); updateStep(); }));
+    document.querySelectorAll('input[name="modality"]').forEach((i) => i.addEventListener("change", () => { state.modality = i.value; renderOptions(); updateStep(); }));
+  }
+
+  function suggestedReason() {
+    if (!dash || !audit) return null;
+    if (dash.student.academic_standing !== "Good Standing") return "degree_check";
+    if (["Junior", "Senior"].includes(dash.student.class_level) && dash.student.internship_count === 0) return "internship_planning";
+    return audit.remaining_required_courses.length ? "course_planning" : "career_planning";
+  }
+
+  function renderDays() {
+    const days = slotData.days;
+    $("range-label").textContent = `(${days[0].label} – ${days[days.length - 1].label})`;
+    if (!state.day || !days.some((d) => d.date === state.day)) state.day = (days.find((d) => d.slots.some((s) => s.available)) || days[0]).date;
+    $("days").innerHTML = days.map((d) => {
+      const open = d.slots.filter((s) => s.available).length, on = d.date === state.day;
+      return `<button type="button" data-day="${d.date}" ${open ? "" : "disabled"} class="py-2.5 px-2 rounded-lg text-center transition-colors border ${on ? "bg-primary-container text-on-primary border-primary-container shadow-md" : "bg-surface-container border-outline-variant/20 hover:bg-surface-container-high disabled:opacity-40 disabled:cursor-not-allowed"}">
+        <div class="text-[11px] uppercase ${on ? "text-on-primary" : "text-on-surface-variant"}">${esc(d.weekday)}</div>
+        <div class="text-sm font-bold ${on ? "text-on-primary" : "text-on-surface"}">${esc(d.label)}</div>
+        <div class="text-[10px] ${on ? "text-on-primary" : "text-outline"}">${open} open</div>
+      </button>`;
+    }).join("");
+    $("days").querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => { state.day = b.dataset.day; state.start = null; renderDays(); updateStep(); }));
+    renderTimes();
+  }
+
+  function renderTimes() {
+    const day = slotData.days.find((d) => d.date === state.day);
+    $("slots-label").textContent = `Open times for ${day.weekday}, ${day.label}:`;
+    $("times").innerHTML = day.slots.map((s) => {
+      const on = s.start === state.start;
+      return `<button type="button" data-start="${esc(s.start)}" ${s.available ? "" : "disabled"} class="py-2.5 px-3 rounded-lg text-sm transition-colors border ${on ? "bg-secondary text-on-secondary font-bold border-secondary" : "bg-surface-container text-on-surface border-outline-variant/20 hover:bg-surface-container-high disabled:opacity-35 disabled:line-through disabled:cursor-not-allowed"}">${esc(s.label)}</button>`;
+    }).join("");
+    $("times").querySelectorAll("[data-start]").forEach((b) => b.addEventListener("click", () => { state.start = b.dataset.start; renderTimes(); updateStep(); }));
+  }
+
+  function updateStep() {
+    const step = !state.reason ? 1 : !state.modality ? 2 : !state.start ? 3 : 4;
+    $("step-badge").textContent = step === 4 ? "Ready to confirm" : `Step ${step} of 4`;
+    const blocked = !!upcoming && !state.editing;
+    $("submit").disabled = !state.start || blocked;
+    $("submit-text").textContent = state.editing ? "Save new time" : blocked ? "You already have an upcoming appointment" : "Confirm appointment";
+  }
+
+  function startEditing() {
+    state.editing = upcoming.id;
+    state.reason = upcoming.reason; state.modality = upcoming.modality; state.start = null;
+    $("notes").value = upcoming.notes;
+    $("form-title").textContent = "Reschedule your appointment";
+    $("form-sub").textContent = `Currently ${when(upcoming.start)} · pick a new time`;
+    $("cancel-edit").classList.remove("hidden");
+    renderOptions(); renderDays(); updateStep();
+    $("booking").scrollIntoView({ behavior: "smooth" });
+  }
+
+  function stopEditing() {
+    state.editing = null; state.start = null;
+    $("form-title").textContent = "Book an Advising Session";
+    $("form-sub").textContent = "30-minute sessions · times shown in Eastern Time";
+    $("cancel-edit").classList.add("hidden");
+    $("notes").value = "";
+    renderDays(); updateStep();
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    $("form-error").classList.add("hidden");
+    $("submit").disabled = true;
+    try {
+      const body = { reason: state.reason, modality: state.modality, start: state.start, notes: $("notes").value.trim() };
+      if (state.editing) {
+        await api(`/api/appointments/${state.editing}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        Shell.toast("Appointment rescheduled.");
+      } else {
+        await api("/api/appointments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        Shell.toast("Appointment booked — your advisor can now see your brief.");
+      }
+      state.editing = null; state.start = null;
+      await refresh();
+      stopEditing();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      $("form-error").textContent = err.message;
+      $("form-error").classList.remove("hidden");
+      await refreshSlots();
+    } finally {
+      updateStep();
+    }
+  }
+
+  // ---------------- Upcoming + calendar ----------------
+  function icsFor(a) {
+    const utc = (iso) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    const text = (s) => String(s).replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/[,;]/g, (c) => "\\" + c);
+    return [
+      "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Retriever Career Intelligence//Advising//EN", "BEGIN:VEVENT",
+      `UID:advising-${a.id}@retriever-career-intelligence`, `DTSTAMP:${utc(new Date().toISOString())}`,
+      `DTSTART:${utc(a.start)}`, `DTEND:${utc(a.end)}`,
+      `SUMMARY:${text(`Advising: ${a.reason_label}`)}`,
+      `DESCRIPTION:${text(`${a.modality === "virtual" ? "Virtual" : "In person"} with ${a.advisor}.${a.notes ? `\nNotes: ${a.notes}` : ""}`)}`,
+      "END:VEVENT", "END:VCALENDAR",
+    ].join("\r\n");
+  }
+
+  function downloadIcs(a) {
+    const url = URL.createObjectURL(new Blob([icsFor(a)], { type: "text/calendar" }));
+    const link = Object.assign(document.createElement("a"), { href: url, download: `advising-${a.start.slice(0, 10)}.ics` });
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function renderUpcoming() {
+    if (!upcoming) {
+      $("upcoming").innerHTML = `
+        <div class="absolute left-0 top-0 bottom-0 w-2 bg-surface-container-highest"></div>
+        <div class="p-space-lg pl-6 sm:pl-8 flex items-start gap-space-md">
+          <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-outline shrink-0"><span class="material-symbols-outlined text-[28px]">event</span></div>
+          <div>
+            <div class="text-title-lg font-bold text-on-surface">No upcoming appointment</div>
+            <p class="text-sm text-on-surface-variant mt-1">Book a 30-minute session below. ${suggestedReason() ? `Suggested topic: <span class="text-primary font-semibold">${esc(reasonTitle(suggestedReason()))}</span>.` : ""}</p>
+          </div>
+        </div>`;
+      return;
+    }
+    const a = upcoming;
+    const prep = askLink(`Help me prepare for my advising appointment about ${a.reason_label.toLowerCase()}.${a.notes ? ` My notes: ${a.notes}` : ""}`);
+    $("upcoming").innerHTML = `
+      <div class="absolute left-0 top-0 bottom-0 w-2 bg-primary-container"></div>
+      <div class="p-space-lg pl-6 sm:pl-8 flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+        <div class="flex items-start gap-space-md">
+          <div class="w-12 h-12 rounded-xl bg-primary-container/15 flex items-center justify-center text-primary shrink-0"><span class="material-symbols-outlined text-[28px]" style="font-variation-settings:'FILL' 1">event_available</span></div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-title-lg font-bold text-on-surface">Upcoming: ${esc(a.reason_label)}</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[11px] font-bold uppercase tracking-wide">Booked</span>
+            </div>
+            <p class="text-sm text-on-surface-variant mt-1 flex flex-wrap items-center gap-y-1 gap-x-3">
+              <span class="font-semibold text-on-surface">${esc(a.advisor)}</span><span class="text-outline-variant">•</span>
+              <span class="inline-flex items-center gap-1 text-primary font-medium"><span class="material-symbols-outlined text-[18px] text-secondary">schedule</span>${esc(when(a.start))}</span><span class="text-outline-variant">•</span>
+              <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">${a.modality === "virtual" ? "video_camera_front" : "location_on"}</span>${a.modality === "virtual" ? "Virtual" : "In person"}</span>
+            </p>
+            ${a.notes ? `<p class="text-xs text-on-surface-variant mt-1">Your notes: “${esc(a.notes)}”</p>` : ""}
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-space-xs shrink-0 no-print">
+          <button id="reschedule" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold border border-outline-variant/30" type="button">Reschedule</button>
+          <button id="add-cal" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold inline-flex items-center gap-1.5 border border-outline-variant/30" type="button"><span class="material-symbols-outlined text-[18px] text-secondary">calendar_today</span>Add to calendar</button>
+          <button id="cancel-appt" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-error-container/30 text-error text-xs font-semibold border border-outline-variant/30" type="button">Cancel</button>
+          <a href="${prep}" class="px-3.5 py-2 rounded-lg bg-primary-container hover:bg-secondary text-on-primary text-xs font-bold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px]">support_agent</span>Prepare with AI advisor</a>
+        </div>
+      </div>`;
+    $("reschedule").addEventListener("click", startEditing);
+    $("add-cal").addEventListener("click", () => downloadIcs(a));
+    $("cancel-appt").addEventListener("click", async () => {
+      if (!confirm(`Cancel your appointment on ${when(a.start)}?`)) return;
+      try {
+        await api(`/api/appointments/${a.id}/cancel`, { method: "POST" });
+        Shell.toast("Appointment cancelled.");
+        stopEditing();
+        await refresh();
+      } catch (err) { Shell.toast(err.message); }
+    });
+  }
+
+  // ---------------- Meeting requests ----------------
+  async function renderRequests() {
+    try {
+      const r = await api("/api/meeting-requests");
+      if (!r.requests.length) { $("requests").classList.add("hidden"); return; }
+      $("requests").classList.remove("hidden");
+      $("requests").innerHTML = r.requests.map((q) => `
+        <div class="relative overflow-hidden rounded-xl bg-primary-container/10 border border-primary-container/40 shadow-xl p-space-lg pl-6 sm:pl-8 flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+          <div class="absolute left-0 top-0 bottom-0 w-2 bg-primary-container"></div>
+          <div class="flex items-start gap-space-md">
+            <div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0"><span class="material-symbols-outlined text-[26px]">mark_email_unread</span></div>
+            <div>
+              <div class="text-title-lg font-bold text-on-surface">${esc(q.advisor)} asked to meet: ${esc(q.reason_label)}</div>
+              ${q.message ? `<p class="text-sm text-on-surface mt-1">“${esc(q.message)}”</p>` : ""}
+              <p class="text-xs text-on-surface-variant mt-1">Sent ${esc(new Date(q.created_at).toLocaleDateString())}. Booking any appointment answers this request.</p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-space-xs shrink-0 no-print">
+            ${upcoming ? "" : `<button data-book-reason="${esc(q.reason)}" class="px-3.5 py-2 rounded-lg bg-primary-container hover:bg-secondary text-on-primary text-xs font-bold" type="button">Book this</button>`}
+            <button data-dismiss="${q.id}" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold border border-outline-variant/30" type="button">Dismiss</button>
+          </div>
+        </div>`).join("");
+      $("requests").querySelectorAll("[data-book-reason]").forEach((b) => b.addEventListener("click", () => {
+        state.reason = b.dataset.bookReason; renderOptions(); updateStep();
+        $("booking").scrollIntoView({ behavior: "smooth" });
+      }));
+      $("requests").querySelectorAll("[data-dismiss]").forEach((b) => b.addEventListener("click", async () => {
+        try { await api(`/api/meeting-requests/${b.dataset.dismiss}/dismiss`, { method: "POST" }); renderRequests(); }
+        catch (err) { Shell.toast(err.message); }
+      }));
+    } catch { $("requests").classList.add("hidden"); }
+  }
+
+  // ---------------- Right column ----------------
+  function renderAdvisorCard() {
+    const b = upcoming ? upcoming.brief : null;
+    const s = dash.student;
+    const top = dash.career_matches[0];
+    const rows = [
+      ["GPA", (b ? b.gpa : s.gpa) ?? "First term"],
+      ["Credits", `${b ? b.credits_earned : s.credits_earned} / ${b ? b.credits_required : s.credits_required}`],
+      ["Standing", b ? b.academic_standing : s.academic_standing],
+      ["Remaining required", (b ? b.remaining_required_courses : audit.remaining_required_courses.map((c) => c.course_id)).join(", ") || "None"],
+      ["Top career match", b ? (b.top_career ? `${b.top_career} (${b.top_career_score})` : "—") : (top && top.score > 0 ? `${top.career} (${top.score})` : "—")],
+    ];
+    if (b && b.saved_goal) rows.push(["Saved career goal", b.saved_goal]);
+    $("advisor-card").innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] uppercase tracking-wider text-secondary font-bold">Your advisor</span>
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Accepting bookings</span>
+      </div>
+      <div class="flex items-start gap-space-md">
+        <div class="w-16 h-16 rounded-xl bg-surface-container-highest flex items-center justify-center shrink-0 border border-outline-variant/30"><span class="material-symbols-outlined text-[32px] text-primary">support_agent</span></div>
+        <div>
+          <h3 class="text-headline-sm font-bold text-on-surface">${esc(slotData.advisor)}</h3>
+          <p class="text-xs text-on-surface-variant mt-0.5">Computer Science &amp; Information Systems advising</p>
+          <p class="text-[11px] text-on-surface-variant mt-1">Weekdays · 30-minute sessions · booking opens up to two weeks ahead</p>
+        </div>
+      </div>
+      <div class="p-space-sm rounded-lg bg-surface-container border border-outline-variant/20">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-on-surface-variant mb-2">${b ? "Brief your advisor received" : "Your advisor will receive this brief"}</div>
+        <dl class="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs">${rows.map(([k, v]) => `<dt class="text-on-surface-variant">${esc(k)}</dt><dd class="text-on-surface font-medium">${esc(v)}</dd>`).join("")}</dl>
+        <p class="text-[10px] text-outline mt-2">${b ? `Snapshot taken when you booked.` : `Taken from your records at booking time.`} Your AI chat history is not shared.</p>
+      </div>`;
+  }
+
+  function renderPrep() {
+    const s = dash.student, top = dash.career_matches[0], remaining = audit.remaining_required_courses;
+    const eligible = remaining.filter((r) => r.status !== "needs_prerequisites" && r.offered_next_term);
+    const item = (href, icon, title, hint) => `
+      <a href="${href}" class="w-full py-2.5 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-between gap-3 transition-colors border border-outline-variant/20">
+        <span class="inline-flex items-center gap-2 min-w-0"><span class="material-symbols-outlined text-[18px] text-secondary">${icon}</span>
+          <span class="min-w-0"><span class="block text-xs font-semibold">${title}</span><span class="block text-[11px] text-on-surface-variant truncate">${hint}</span></span></span>
+        <span class="material-symbols-outlined text-[18px] text-outline">chevron_right</span>
+      </a>`;
+    $("prep").innerHTML = `
+      <h3 class="text-title-lg font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-[22px]">checklist</span>Before your appointment</h3>
+      <div class="flex flex-col gap-2">
+        ${item("degree.html" + apiQuery(), "fact_check", "Review your degree audit", remaining.length ? `${remaining.length} required course${remaining.length === 1 ? "" : "s"} left${eligible.length ? ` · ${eligible.map((r) => r.course_id).slice(0, 3).join(", ")} open for Spring 2027` : ""}` : "All required courses done or in progress")}
+        ${item("pathways.html" + apiQuery(), "alt_route", "Check your career roadmap", top && top.score > 0 ? `Top match: ${esc(top.career)} (${top.score})` : "See which careers your courses point toward")}
+        ${item("market.html" + apiQuery(), "trending_up", "Look at market insights", "What alumni were hired into and which skills they needed")}
+        ${item(askLink("What questions should I bring to my advising appointment?"), "support_agent", "Draft questions with the AI advisor", "Get a list of questions based on your record")}
+      </div>
+      ${s.academic_standing !== "Good Standing" ? `<div class="p-space-sm rounded-lg bg-error-container/20 border border-error/30 text-xs text-error">Your record shows <strong>${esc(s.academic_standing)}</strong> — worth raising with your advisor.</div>` : ""}`;
+  }
+
+  async function renderHistory() {
+    try {
+      const r = await api("/api/appointments?include_past=true");
+      const past = r.appointments.filter((a) => !upcoming || a.id !== upcoming.id);
+      $("history").innerHTML = `
+        <h3 class="text-sm font-bold text-on-surface mb-space-sm">Appointment history</h3>
+        ${past.length ? past.slice(-5).reverse().map((a) => `
+          <div class="flex items-center justify-between gap-2 py-1.5 border-b border-outline-variant/20 last:border-0 text-xs">
+            <span class="text-on-surface">${esc(fmt(a.start, { month: "short", day: "numeric" }))} · ${esc(a.reason_label)}</span>
+            <span class="${a.status === "cancelled" || a.status === "no_show" ? "text-outline" : "text-emerald-400"} font-semibold">${{ cancelled: "Cancelled", completed: "Completed", no_show: "Missed" }[a.status] || "Past"}</span>
+          </div>`).join("") : `<p class="text-xs text-on-surface-variant">No past appointments.</p>`}`;
+    } catch { $("history").innerHTML = ""; }
+  }
+
+  // ---------------- Load ----------------
+  async function refreshSlots() {
+    slotData = await api("/api/appointments/slots");
+    renderDays();
+  }
+
+  async function refresh() {
+    const [slots, list] = await Promise.all([api("/api/appointments/slots"), api("/api/appointments")]);
+    slotData = slots;
+    upcoming = list.appointments[0] || null;
+    renderUpcoming(); renderDays(); renderAdvisorCard(); renderHistory(); renderRequests(); updateStep();
+  }
+
+  async function init() {
+    try {
+      [dash, audit] = await Promise.all([api(`/api/dashboard/${me}`), api(`/api/degree/${me}`)]);
+      Shell.setStudent(dash.student);
+      state.reason = suggestedReason() || state.reason;
+      const rec = dash.pathway && dash.pathway.recommended_courses.slice(0, 2).map((c) => c.course_id);
+      $("notes").placeholder = rec && rec.length === 2 ? `e.g. Should I take ${rec[0]} or ${rec[1]} in Spring 2027?` : "e.g. Which courses should I take next term?";
+      renderOptions(); renderPrep();
+      await refresh();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("booking").addEventListener("submit", submit);
+  $("cancel-edit").addEventListener("click", stopEditing);
+  init();
+})();
+</script>
+</body></html>

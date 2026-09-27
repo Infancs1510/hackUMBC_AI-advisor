@@ -1,0 +1,322 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Reports &amp; Exports</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden rounded-xl bg-surface-container-lowest border border-surface-container p-space-lg shadow-xl">
+    <div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-primary-container/15 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-10 -bottom-16 w-64 h-64 rounded-full bg-secondary/10 blur-2xl pointer-events-none"></div>
+    <div class="relative flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+      <div class="max-w-3xl flex flex-col gap-space-xs">
+        <div class="flex flex-wrap items-center gap-space-xs">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary text-[11px] font-semibold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span id="asof">Records as of —</span></span>
+          <span class="text-outline text-xs">•</span>
+          <span class="text-[11px] text-on-surface-variant" id="terms">—</span>
+        </div>
+        <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Reports <span class="text-primary-container">&amp; Exports</span></h1>
+        <p class="text-body-md text-on-surface-variant">Build caseload, curriculum, career and activity reports from the dataset and this app's records. Download them as CSV, or print or save them as PDF. Every report you generate is kept as a snapshot you can download again.</p>
+      </div>
+      <div class="flex items-center gap-space-md self-start xl:self-center bg-surface-container/70 backdrop-blur-md p-space-md rounded-xl border border-outline-variant/20">
+        <div class="flex flex-col border-r border-outline-variant/30 pr-space-md">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Caseload</span>
+          <span class="text-headline-md font-bold text-primary" id="cap-students">—</span>
+          <span class="text-[11px] text-on-surface-variant">current students</span>
+        </div>
+        <div class="flex flex-col pl-space-xs">
+          <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Saved reports</span>
+          <span class="text-headline-md font-bold text-on-surface" id="cap-runs">—</span>
+          <span class="text-[11px] text-secondary" id="cap-kept">most recent kept</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What the reports draw on -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-space-md" id="sources"></section>
+
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-xs">
+    <div>
+      <h2 class="text-headline-sm font-bold text-on-surface">Report suite</h2>
+      <p class="text-xs text-on-surface-variant">Each report runs on current data when you click; the figure on the card is live.</p>
+    </div>
+    <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant"><span class="material-symbols-outlined text-sm text-secondary">info</span><span id="notice"></span></div>
+  </div>
+
+  <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-space-md" id="suite"><div class="text-sm text-on-surface-variant">Loading…</div></section>
+
+  <!-- History -->
+  <section class="rounded-xl bg-surface-container-low border border-surface-container shadow-xl overflow-hidden">
+    <div class="p-space-lg flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+      <div>
+        <div class="flex items-center gap-space-xs"><h2 class="text-headline-sm font-bold text-on-surface">Generated reports</h2><span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px] font-bold" id="hist-count">0</span></div>
+        <p class="text-xs text-on-surface-variant mt-1">Snapshots saved in this app's database. Downloading one gives the data exactly as it was when generated.</p>
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-sm pointer-events-none">filter_list</span>
+          <select id="hist-filter" class="pl-8 pr-8 py-1.5 rounded-lg bg-surface-container text-xs text-on-surface border-outline-variant/30 focus:ring-primary"></select>
+        </div>
+        <button id="hist-refresh" class="p-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30" title="Refresh" type="button"><span class="material-symbols-outlined text-sm">refresh</span></button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-surface-container text-on-surface-variant text-[10px] uppercase tracking-wider">
+          <tr><th class="py-space-sm px-space-lg">Report</th><th class="py-space-sm px-space-md">Category</th><th class="py-space-sm px-space-md">Generated</th><th class="py-space-sm px-space-md">By</th><th class="py-space-sm px-space-md">Rows</th><th class="py-space-sm px-space-lg text-right">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/15 text-on-surface" id="hist-body"></tbody>
+      </table>
+    </div>
+    <div class="p-space-md bg-surface-container flex items-center justify-between text-[11px] text-on-surface-variant">
+      <span id="hist-range"></span>
+      <div class="flex items-center gap-space-xs" id="hist-pages"></div>
+    </div>
+  </section>
+
+  <section class="p-space-lg rounded-xl bg-surface-container-low border border-surface-container flex flex-col md:flex-row items-start md:items-center gap-space-md">
+    <div class="w-12 h-12 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined">policy</span></div>
+    <div class="text-xs text-on-surface-variant flex flex-col gap-1">
+      <h4 class="text-sm font-bold text-on-surface">About these reports</h4>
+      <p>Built from the HackUMBC synthetic dataset — campus IDs only, no names — plus appointments, meeting requests, course plans and reviews recorded in this app. They are not official university records and don't come from a student information system.</p>
+      <p>Salaries are nominal dollars, not inflation-adjusted. Course demand is estimated from remaining requirements and prerequisites, not from registration.</p>
+    </div>
+  </section>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/advisor-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = AdvisorShell.mount({ active: "reports" });
+  if (!session) return;
+  const { toast } = AdvisorShell;
+
+  const CAT = {
+    Advising: ["assignment_ind", "bg-surface-container-high text-on-surface-variant", "text-primary"],
+    Triage: ["warning", "bg-error-container/30 text-error", "text-error"],
+    Curriculum: ["menu_book", "bg-secondary/15 text-secondary", "text-secondary"],
+    Careers: ["work", "bg-primary-container/15 text-primary", "text-primary"],
+    Activity: ["history", "bg-surface-container-high text-on-surface-variant", "text-on-surface-variant"],
+  };
+  const PAGE = 8;
+  let catalog = null, runs = [], kept = 30, page = 1, filter = "";
+
+  const when = (iso) => {
+    const d = new Date(iso), today = new Date();
+    const t = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    if (d.toDateString() === today.toDateString()) return `Today, ${t}`;
+    const y = new Date(today); y.setDate(today.getDate() - 1);
+    if (d.toDateString() === y.toDateString()) return `Yesterday, ${t}`;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + `, ${t}`;
+  };
+  const slug = (run) => `${run.key}_${run.generated_at.slice(0, 10)}_${run.id}`;
+  const label = (col) => col.replace(/_/g, " ").replace(/\bpct\b/, "%").replace(/\busd\b/, "USD");
+
+  // ---------------- Output ----------------
+  function downloadCsv(run) {
+    const cell = (v) => {
+      const s = v == null ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = [run.columns.join(","), ...run.rows.map((r) => r.map(cell).join(","))].join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = Object.assign(document.createElement("a"), { href: url, download: `${slug(run)}.csv` });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function printRun(run) {
+    const w = window.open("", "_blank");
+    if (!w) { toast("Allow pop-ups to print or save as PDF."); return; }
+    const info = catalog.reports.find((r) => r.key === run.key);
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(run.title)}</title>
+      <style>
+        body{font:12px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111;margin:24px}
+        h1{font-size:18px;margin:0 0 4px} .meta{color:#555;margin:0 0 4px} .desc{color:#333;margin:0 0 14px;max-width:900px}
+        table{border-collapse:collapse;width:100%} th,td{border:1px solid #ccc;padding:4px 6px;text-align:left;vertical-align:top}
+        th{background:#f3f0e6;text-transform:capitalize} tr:nth-child(even) td{background:#fafafa}
+        .foot{margin-top:12px;color:#666;font-size:11px} @media print{body{margin:0}}
+      </style></head><body>
+      <h1>${esc(run.title)}</h1>
+      <p class="meta">Generated ${esc(new Date(run.generated_at).toLocaleString())} by ${esc(run.generated_by)} · ${run.row_count.toLocaleString()} rows · Records as of ${esc(catalog.snapshot.records_as_of)}</p>
+      ${info ? `<p class="desc">${esc(info.description)}</p>` : ""}
+      <table><thead><tr>${run.columns.map((c) => `<th>${esc(label(c))}</th>`).join("")}</tr></thead>
+      <tbody>${run.rows.map((r) => `<tr>${r.map((v) => `<td>${esc(v ?? "")}</td>`).join("")}</tr>`).join("")}</tbody></table>
+      <p class="foot">Retriever Career Intelligence (HackUMBC 2026 project) · Synthetic dataset — not real student records · Salaries are nominal.</p>
+      <script>window.onload=()=>window.print()<\/script></body></html>`);
+    w.document.close();
+  }
+
+  async function generate(key, format, btn) {
+    const original = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>Building…`;
+    try {
+      const run = await api(`/api/reports/${key}/runs`, { method: "POST" });
+      format === "csv" ? downloadCsv(run) : printRun(run);
+      toast(`${run.title}: ${run.row_count.toLocaleString()} rows — saved to generated reports.`);
+      await loadHistory();
+    } catch (err) { toast(err.message); }
+    finally { btn.disabled = false; btn.innerHTML = original; }
+  }
+
+  async function fromHistory(id, action) {
+    try {
+      if (action === "delete") {
+        if (!confirm("Delete this saved report?")) return;
+        await api(`/api/report-runs/${id}`, { method: "DELETE" });
+        toast("Report deleted.");
+        return loadHistory();
+      }
+      const run = await api(`/api/report-runs/${id}`);
+      action === "csv" ? downloadCsv(run) : printRun(run);
+    } catch (err) { toast(err.message); }
+  }
+
+  // ---------------- Render ----------------
+  function renderHero() {
+    const s = catalog.snapshot;
+    $("asof").textContent = `Records as of ${new Date(s.records_as_of + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+    $("terms").textContent = `${s.current_term} in progress · planning for ${s.next_term}`;
+    $("cap-students").textContent = s.students.toLocaleString();
+    $("notice").textContent = catalog.notice;
+    const card = (icon, title, big, body, tag) => `
+      <div class="bg-surface-container-low border border-surface-container p-space-md rounded-xl shadow-xl flex items-start justify-between gap-space-sm">
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-1.5 text-primary"><span class="material-symbols-outlined text-lg">${icon}</span><span class="text-[11px] font-bold uppercase tracking-wider">${title}</span></div>
+          <span class="text-title-lg font-bold text-on-surface">${big}</span>
+          <p class="text-xs text-on-surface-variant">${body}</p>
+        </div>
+        ${tag ? `<span class="px-2 py-1 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-bold uppercase shrink-0">${tag}</span>` : ""}
+      </div>`;
+    $("sources").innerHTML = [
+      card("database", "HackUMBC dataset", `${s.students.toLocaleString()} students · ${s.alumni.toLocaleString()} alumni`, `${s.transcript_rows.toLocaleString()} transcript rows and ${s.employment_rows.toLocaleString()} alumni job records. Read-only.`, "Synthetic"),
+      card("edit_calendar", "Recorded in this app", `${s.appointments} appointments · ${s.plans} plans`, `${s.meeting_requests} meeting requests and ${s.reviews} caseload reviews. These feed the triage and activity reports.`, "Live"),
+      card("badge", "What's in an export", "Campus IDs only", "The dataset has no names or contact details. Salaries are nominal dollars; course demand is an estimate, not registration data.", ""),
+    ].join("");
+  }
+
+  function reportCard(r) {
+    const [icon, tagCls, iconCls] = CAT[r.category];
+    const wide = r.chart.length;
+    const max = wide ? Math.max(...r.chart.map((b) => b.value)) : 0;
+    return `
+      <div class="bg-surface-container-low border border-surface-container p-space-lg rounded-xl shadow-xl flex flex-col justify-between group hover:border-primary-container/40 transition-colors ${wide ? "lg:col-span-3 md:col-span-2" : ""}">
+        <div>
+          <div class="flex items-center justify-between mb-space-sm">
+            <span class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center ${iconCls}"><span class="material-symbols-outlined">${icon}</span></span>
+            <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase ${tagCls}">${esc(r.category)}</span>
+          </div>
+          <div class="${wide ? "flex flex-col lg:flex-row lg:items-start justify-between gap-space-lg" : ""}">
+            <div class="${wide ? "max-w-2xl" : ""}">
+              <h3 class="text-title-lg font-bold text-on-surface group-hover:text-primary transition-colors">${esc(r.title)}</h3>
+              <p class="text-xs text-on-surface-variant mt-space-xs leading-relaxed">${esc(r.description)}</p>
+              <div class="mt-space-md p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-2">
+                <span class="text-[11px] text-on-surface-variant">${esc(r.metric.label)}</span>
+                <span class="text-xs font-bold text-on-surface text-right">${esc(r.metric.value)}</span>
+              </div>
+            </div>
+            ${wide ? `
+              <div class="flex-1 min-w-[260px] max-w-xl bg-surface-container rounded-lg p-space-md">
+                <div class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-space-sm">Students who can take it next term</div>
+                <div class="flex flex-col gap-1.5">${r.chart.map((b) => `
+                  <div class="flex items-center gap-2 text-[11px]">
+                    <span class="w-16 font-semibold text-on-surface">${esc(b.label)}</span>
+                    <div class="flex-1 h-2.5 rounded-full bg-surface-container-highest overflow-hidden"><div class="h-full rounded-full bg-primary-container" style="width:${(b.value / max) * 100}%"></div></div>
+                    <span class="w-10 text-right text-on-surface-variant">${b.value.toLocaleString()}</span>
+                  </div>`).join("")}</div>
+              </div>` : ""}
+          </div>
+        </div>
+        <div class="mt-space-lg pt-space-md border-t border-outline-variant/15 flex items-center gap-space-xs ${wide ? "justify-end" : ""}">
+          <button data-run="${r.key}" data-format="csv" class="${wide ? "" : "flex-1"} py-2 px-space-md rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-all flex items-center justify-center gap-1 disabled:opacity-50" type="button"><span class="material-symbols-outlined text-sm">table_view</span>Generate CSV</button>
+          <button data-run="${r.key}" data-format="print" class="py-2 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold border border-outline-variant/30 flex items-center gap-1 disabled:opacity-50" title="Opens a printable page — choose Save as PDF in the print dialog" type="button"><span class="material-symbols-outlined text-sm">print</span>Print / PDF</button>
+        </div>
+      </div>`;
+  }
+
+  function renderSuite() {
+    $("suite").innerHTML = catalog.reports.map(reportCard).join("");
+    $("suite").querySelectorAll("[data-run]").forEach((b) => b.addEventListener("click", () => generate(b.dataset.run, b.dataset.format, b)));
+    const cats = [...new Set(catalog.reports.map((r) => r.category))];
+    $("hist-filter").innerHTML = `<option value="">All categories</option>` + cats.map((c) => `<option ${c === filter ? "selected" : ""}>${esc(c)}</option>`).join("");
+  }
+
+  function renderHistory() {
+    const list = runs.filter((r) => !filter || r.category === filter);
+    const pages = Math.max(1, Math.ceil(list.length / PAGE));
+    page = Math.min(page, pages);
+    const shown = list.slice((page - 1) * PAGE, page * PAGE);
+    $("hist-count").textContent = `${runs.length} saved`;
+    $("cap-runs").textContent = runs.length;
+    $("cap-kept").textContent = `most recent ${kept} kept`;
+    $("hist-body").innerHTML = shown.map((r) => {
+      const [icon, tagCls, iconCls] = CAT[r.category];
+      return `
+        <tr class="hover:bg-surface-container/50 transition-colors">
+          <td class="py-space-sm px-space-lg"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined ${iconCls}">${icon}</span><div><div class="font-bold text-on-surface">${esc(r.title)}</div><div class="text-[11px] text-on-surface-variant font-label-code">${esc(slug(r))}.csv</div></div></div></td>
+          <td class="py-space-sm px-space-md"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${tagCls}">${esc(r.category)}</span></td>
+          <td class="py-space-sm px-space-md text-on-surface-variant whitespace-nowrap">${esc(when(r.generated_at))}</td>
+          <td class="py-space-sm px-space-md">${esc(r.generated_by)}</td>
+          <td class="py-space-sm px-space-md font-label-code text-on-surface-variant">${r.row_count.toLocaleString()}</td>
+          <td class="py-space-sm px-space-lg text-right whitespace-nowrap">
+            <button data-hist="csv" data-id="${r.id}" class="p-1.5 rounded text-on-surface-variant hover:text-primary hover:bg-surface-container-high" title="Download CSV"><span class="material-symbols-outlined text-lg">download</span></button>
+            <button data-hist="print" data-id="${r.id}" class="p-1.5 rounded text-on-surface-variant hover:text-primary hover:bg-surface-container-high" title="Print / save as PDF"><span class="material-symbols-outlined text-lg">print</span></button>
+            <button data-hist="delete" data-id="${r.id}" class="p-1.5 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high" title="Delete"><span class="material-symbols-outlined text-lg">delete</span></button>
+          </td>
+        </tr>`;
+    }).join("") || `<tr><td colspan="6" class="py-space-lg px-space-lg text-center text-on-surface-variant">No reports generated yet${filter ? " in this category" : ""}. Use <strong class="text-on-surface">Generate CSV</strong> or <strong class="text-on-surface">Print / PDF</strong> on any report above.</td></tr>`;
+    $("hist-range").textContent = list.length ? `Showing ${(page - 1) * PAGE + 1}–${(page - 1) * PAGE + shown.length} of ${list.length}` : "";
+    $("hist-pages").innerHTML = pages > 1 ? Array.from({ length: pages }, (_, i) => `<button data-page="${i + 1}" class="px-space-sm py-1 rounded ${i + 1 === page ? "bg-surface-container-highest text-on-surface font-semibold" : "hover:bg-surface-container-high text-on-surface-variant"}">${i + 1}</button>`).join("") : "";
+    $("hist-body").querySelectorAll("[data-hist]").forEach((b) => b.addEventListener("click", () => fromHistory(+b.dataset.id, b.dataset.hist)));
+    $("hist-pages").querySelectorAll("[data-page]").forEach((b) => b.addEventListener("click", () => { page = +b.dataset.page; renderHistory(); }));
+  }
+
+  // ---------------- Load ----------------
+  async function loadHistory() {
+    const h = await api("/api/report-runs");
+    runs = h.runs; kept = h.kept;
+    renderHistory();
+  }
+
+  async function load() {
+    try {
+      const [c, dash] = await Promise.all([api("/api/reports"), api("/api/advisor-dashboard")]);
+      catalog = c;
+      AdvisorShell.setAdvisor({ name: dash.advisor, caseload: dash.total_students, upcoming: dash.upcoming_appointments });
+      renderHero(); renderSuite();
+      await loadHistory();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("hist-filter").addEventListener("change", (e) => { filter = e.target.value; page = 1; renderHistory(); });
+  $("hist-refresh").addEventListener("click", loadHistory);
+  load();
+})();
+</script>
+</body></html>

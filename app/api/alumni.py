@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, Path
 
-from app.api.deps import get_profiles, get_store
+from app.api.deps import get_profiles, get_store, require_advisor
 from app.data.loader import DataStore
 from app.models.advisor import CAMPUS_ID_PATTERN
 from app.models.alumni import AlumniResponse
 from app.services.alumni_profile import build_alumni_view
 from app.services.career_matching import CareerProfile
 
-router = APIRouter(tags=["alumni"])
+router = APIRouter(tags=["alumni"], dependencies=[Depends(require_advisor)])
 
 
 @router.get("/alumni/{campus_id}", response_model=AlumniResponse)

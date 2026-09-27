@@ -206,6 +206,8 @@ def test_alumni_remote_share(store):
 def test_every_alumnus_and_student_builds(store, profiles):
     from app.services.alumni_profile import build_alumni_view
     from app.services.dashboard import build_dashboard
+    from app.services.degree_audit import build_degree_audit
+    from app.services.roadmap import build_roadmap
 
     for campus_id in store.alumni.index:
         view = build_alumni_view(store, profiles, campus_id)
@@ -213,3 +215,61 @@ def test_every_alumnus_and_student_builds(store, profiles):
         assert (view.first_job is not None) == employed
     for campus_id in store.students.index:
         build_dashboard(store, profiles, campus_id)
+        audit = build_degree_audit(store, campus_id)
+        assert audit.credits.remaining_after_current_term >= 0
+        assert_valid_roadmap(store, build_roadmap(store, profiles, campus_id))
+
+
+
+def assert_valid_roadmap(store, roadmap):
+    """Every planned course is offered that season, after its prerequisites, and never repeated."""
+    from app.data.parsing import term_sort_key
+    from app.services.pathway import implied_prerequisites
+    from app.services.student_profile import completed_course_ids
+
+    completed = completed_course_ids(store.transcript_for(roadmap.campus_id))
+    done = completed | implied_prerequisites(completed, store.catalog)
+    seen = set()
+    for term in roadmap.terms:
+        ids = [c.course_id for c in term.courses]
+        assert not (set(ids) & seen), f"{roadmap.campus_id} repeats a course"
+        if term.status == "planned":
+            assert len(ids) <= 4
+            for cid in ids:
+                course = store.catalog[cid]
+                assert term.term.split()[0] in course.terms_offered
+                assert all(any(alt in done for alt in g) for g in course.prerequisites), (roadmap.campus_id, cid)
+                assert not (term.after_expected_graduation and next(c for c in term.courses if c.course_id == cid).reason != "required")
+        seen |= set(ids)
+        done |= set(ids)
+    scores = [t.score_after for t in roadmap.terms]
+    assert scores == sorted(scores)
+
+
+def test_roadmap_for_transfer_student(store, profiles):
+    from app.services.roadmap import build_roadmap
+
+    roadmap = build_roadmap(store, profiles, TRANSFER_JUNIOR, "cybersecurity")
+    assert roadmap.career == "Cybersecurity"
+    assert roadmap.terms[0].term == "Fall 2026" and roadmap.terms[0].status == "in_progress"
+    planned = {c.course_id: c.reason for t in roadmap.terms[1:] for c in t.courses}
+    assert {"CMSC411", "CMSC421", "CMSC441", "CMSC447"} <= set(planned)  # remaining required courses
+    assert all(planned[c] == "required" for c in ["CMSC411", "CMSC421", "CMSC441", "CMSC447"])
+    assert "CMSC487" in planned  # Network Security: core cyber skills
+    assert roadmap.score_after_plan > roadmap.score_now
+    assert not any(t.after_expected_graduation for t in roadmap.terms)
+    assert_valid_roadmap(store, roadmap)
+
+
+def test_pathway_score_gain_and_skill_coverage(store, profiles):
+    from app.services.dashboard import build_dashboard
+
+    d = build_dashboard(store, profiles, TRANSFER_JUNIOR, career="Software Engineering")
+    coverage = {s.skill: s for s in d.pathway.skill_coverage}
+    assert set(coverage) == set(profiles["Software Engineering"].skill_weights)
+    assert coverage["Algorithms"].status == "have" and coverage["Algorithms"].courses == []
+    assert coverage["Testing"].status == "missing" and "CMSC345" in coverage["Testing"].courses
+    rec = next(r for r in d.pathway.recommended_courses if r.course_id == "CMSC345")
+    weights = profiles["Software Engineering"].skill_weights
+    expected = 100 * sum(weights[s] for s in rec.skills_gained) / sum(weights.values())
+    assert rec.score_gain == round(expected, 1)

@@ -1,0 +1,388 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Resume &amp; Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Heading -->
+  <header class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-lg pb-space-lg border-b border-outline-variant/30">
+    <div class="max-w-3xl">
+      <div class="inline-flex items-center gap-space-xs text-secondary font-label-code text-[11px] tracking-wider uppercase mb-1 font-bold">
+        <span class="w-2 h-2 rounded-full bg-primary-container"></span>Resume &amp; portfolio
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Resume Intelligence &amp; <span class="text-primary-container">Verified Portfolio</span></h1>
+      <p class="text-body-md text-on-surface-variant mt-1 leading-relaxed">Checks your resume against your target career and your verified record, then builds a portfolio from what you've actually done.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-space-sm shrink-0 no-print">
+      <label class="text-xs text-on-surface-variant flex items-center gap-2">Target
+        <select id="career-select" class="bg-surface-container text-on-surface text-xs rounded-lg border border-outline-variant/40 py-2 pl-2 pr-8 focus:ring-primary focus:border-primary"></select>
+      </label>
+      <button id="reeval" class="inline-flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-all border border-outline-variant/30" type="button">
+        <span class="material-symbols-outlined text-[18px] text-secondary">refresh</span>Re-evaluate
+      </button>
+      <label class="inline-flex items-center gap-2 px-space-lg py-2.5 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-all shadow-[0_0_14px_rgba(255,179,0,0.3)] cursor-pointer">
+        <span class="material-symbols-outlined text-[20px]">upload_file</span><span id="upload-label">Upload resume</span>
+        <input type="file" id="file" accept=".pdf,.docx,.txt,.md" class="hidden">
+      </label>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+    <!-- Left -->
+    <div class="xl:col-span-7 flex flex-col gap-space-lg min-w-0">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="diagnostic">
+        <div class="text-sm text-on-surface-variant">Loading…</div>
+      </section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="findings"></section>
+      <section class="rounded-xl bg-surface-container-low border border-primary-container/30 p-space-lg shadow-xl no-print" id="ai-card"></section>
+    </div>
+    <!-- Right -->
+    <div class="xl:col-span-5 flex flex-col gap-space-lg min-w-0">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="sources"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl relative overflow-hidden no-print">
+        <div class="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-primary-container/10 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center gap-2 pb-space-sm mb-space-md border-b border-outline-variant/20">
+          <span class="material-symbols-outlined text-secondary text-[20px]">rate_review</span>
+          <h3 class="text-sm font-bold text-on-surface">Get human &amp; AI feedback</h3>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-space-md">Your advisor sees your record-based brief when you book. Bring your resume to the meeting, or talk it through with the AI advisor first.</p>
+        <div class="flex flex-col gap-2">
+          <a id="book-review" class="w-full py-2.5 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-colors flex items-center justify-center gap-2" href="appointments.html"><span class="material-symbols-outlined text-[18px]">calendar_add_on</span>Book a resume review</a>
+          <a id="ask-ai" class="w-full py-2.5 rounded-lg bg-surface-container text-on-surface text-xs font-semibold hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2 border border-outline-variant/30" href="student.html"><span class="material-symbols-outlined text-[18px]">support_agent</span>Ask the AI advisor</a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Portfolio -->
+  <section class="flex flex-col gap-space-md">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-space-xs">
+      <div>
+        <div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded bg-primary-container"></span><span class="font-label-code text-[11px] uppercase tracking-widest text-secondary font-bold">Portfolio</span></div>
+        <h2 class="text-headline-md font-bold text-on-surface">Verified &amp; Self-Reported Work</h2>
+      </div>
+      <p class="text-xs text-on-surface-variant"><span class="text-emerald-400 font-semibold">Verified</span> items come from your student record; <span class="text-secondary font-semibold">self-reported</span> projects are yours to add.</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter" id="portfolio"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+    <form id="project-form" class="rounded-xl bg-surface-container-low border border-dashed border-outline-variant/50 p-space-lg flex flex-col gap-space-sm no-print">
+      <div class="text-sm font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-secondary">add_circle</span>Add a project</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+        <input id="p-title" maxlength="120" required placeholder="Title (e.g. Course Scheduler)" class="bg-surface-container text-on-surface text-sm rounded-lg border border-outline-variant/30 focus:ring-primary focus:border-primary">
+        <input id="p-link" type="url" maxlength="300" placeholder="Link (GitHub, Devpost…) — optional" class="bg-surface-container text-on-surface text-sm rounded-lg border border-outline-variant/30 focus:ring-primary focus:border-primary">
+      </div>
+      <textarea id="p-desc" maxlength="600" rows="2" placeholder="What you built and what it did" class="bg-surface-container text-on-surface text-sm rounded-lg border border-outline-variant/30 focus:ring-primary focus:border-primary resize-none"></textarea>
+      <div class="flex flex-col md:flex-row gap-space-sm">
+        <input id="p-skills" placeholder="Skills, comma-separated (e.g. Python, SQL, REST APIs)" class="flex-1 bg-surface-container text-on-surface text-sm rounded-lg border border-outline-variant/30 focus:ring-primary focus:border-primary">
+        <button class="px-space-lg py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-colors" type="submit">Add project</button>
+      </div>
+      <p class="text-[11px] text-on-surface-variant">Only skills from the course and alumni-role vocabulary are kept, so they line up with your career matching.</p>
+      <div id="project-error" class="hidden text-xs text-error"></div>
+    </form>
+  </section>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, md, api, apiQuery } = App;
+  const session = Shell.mount({ active: "resume" });
+  if (!session) return;
+  const me = encodeURIComponent(session.user.campus_id);
+  const askLink = (q) => `student.html?ask=${encodeURIComponent(q)}${apiQuery().replace("?", "&")}`;
+  $("book-review").href = "appointments.html" + apiQuery();
+  $("ask-ai").href = askLink("Can you help me improve my resume for my target career?");
+
+  const PRIORITY = { high: "bg-error-container/30 text-error", medium: "bg-primary-container/15 text-primary", low: "bg-surface-container-highest text-on-surface-variant" };
+  const KIND_ICON = { experience_missing: "work_history", verified_skill_missing: "verified", career_gap: "alt_route", quantify: "functions",
+    section_missing: "view_agenda", contact: "mail", length: "straighten", unverified_claim: "help" };
+  const EXP_ICON = { Internship: "work", "Co-op": "work", "Undergraduate Research": "biotech", Hackathon: "code", "Competitive Team": "emoji_events", Certification: "workspace_premium" };
+  let resume = null, dash = null, portfolio = null, career = "";
+
+  function scoreLabel(score) {
+    return score >= 80 ? ["Strong", "text-emerald-400"] : score >= 60 ? ["Getting there", "text-primary"] : ["Needs work", "text-error"];
+  }
+
+  // ---------------- Diagnostic ----------------
+  function renderDiagnostic() {
+    if (!resume.resume) {
+      $("upload-label").textContent = "Upload resume";
+      $("diagnostic").innerHTML = `
+        <label class="flex flex-col items-center justify-center text-center gap-space-sm p-space-xl rounded-xl border-2 border-dashed border-outline-variant/50 hover:border-primary-container/60 cursor-pointer transition-colors" id="dropzone">
+          <span class="material-symbols-outlined text-[40px] text-primary-container">upload_file</span>
+          <span class="text-title-lg font-bold text-on-surface">Upload your resume</span>
+          <span class="text-xs text-on-surface-variant max-w-md">PDF, DOCX, TXT, or MD · 2 MB max. It's stored in this app only and checked against your record. It's sent to the AI only if you ask for AI suggestions.</span>
+          <span class="mt-space-sm px-space-md py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold">Choose file</span>
+        </label>`;
+      $("dropzone").addEventListener("click", (e) => { e.preventDefault(); $("file").click(); });
+      ["dragover", "drop"].forEach((ev) => $("dropzone").addEventListener(ev, (e) => { e.preventDefault(); if (ev === "drop" && e.dataTransfer.files[0]) upload(e.dataTransfer.files[0]); }));
+      return;
+    }
+    $("upload-label").textContent = "Upload new version";
+    const a = resume.analysis, r = resume.resume;
+    const [label, color] = scoreLabel(a.score);
+    const circ = 2 * Math.PI * 50, offset = circ * (1 - a.score / 100);
+    const colors = ["bg-primary-container", "bg-secondary", "bg-tertiary-container", "bg-emerald-400/80"];
+    $("diagnostic").innerHTML = `
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-space-md border-b border-outline-variant/20 gap-space-sm">
+        <div>
+          <span class="text-[11px] uppercase tracking-wider text-secondary font-bold">Readiness diagnostic</span>
+          <h2 class="text-headline-sm font-bold text-on-surface">Checked against ${esc(a.target_career)}</h2>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-primary-container/10 text-primary text-[11px] font-semibold border border-primary-container/25">
+          <span class="w-2 h-2 rounded-full bg-primary-container"></span>Grounded in ${esc(dash.student.campus_id)}'s record
+        </div>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-space-lg pt-space-lg items-center">
+        <div class="md:col-span-5 flex flex-col items-center justify-center p-space-md bg-surface-container rounded-lg text-center border border-outline-variant/20">
+          <div class="relative w-36 h-36 flex items-center justify-center">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="currentColor" stroke-width="10" class="text-surface-container-highest"></circle>
+              <circle cx="60" cy="60" r="50" fill="transparent" stroke="currentColor" stroke-width="10" stroke-linecap="round" class="text-primary-container" stroke-dasharray="${circ}" stroke-dashoffset="${offset}"></circle>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+              <span class="text-display-lg-mobile font-extrabold text-on-surface leading-none">${a.score}</span>
+              <span class="text-[11px] text-on-surface-variant uppercase font-semibold">/ 100</span>
+            </div>
+          </div>
+          <div class="mt-space-sm text-sm font-bold ${color}">${label}</div>
+          <p class="text-[11px] text-on-surface-variant max-w-[200px] mt-0.5">Readiness for ${esc(a.target_career)} roles, by this app's rubric</p>
+        </div>
+        <div class="md:col-span-7 flex flex-col justify-center gap-space-md">${a.components.map((c, i) => `
+          <div>
+            <div class="flex justify-between items-center text-xs mb-1">
+              <span class="text-on-surface font-semibold">${esc(c.label)} <span class="text-on-surface-variant font-normal">· ${Math.round(c.weight * 100)}%</span></span>
+              <span class="text-primary font-bold">${c.score == null ? "n/a" : Math.round(c.score) + "%"}</span>
+            </div>
+            <div class="w-full h-2 rounded bg-surface-container-highest overflow-hidden"><div class="h-full ${colors[i]} rounded" style="width:${c.score ?? 0}%"></div></div>
+            <div class="text-[11px] text-on-surface-variant mt-0.5">${esc(c.detail)}</div>
+          </div>`).join("")}</div>
+      </div>
+      <p class="text-[11px] text-on-surface-variant mt-space-md">${esc(a.rubric_note)}</p>
+      <div class="mt-space-md p-space-sm sm:px-space-md bg-surface-container rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-sm border border-outline-variant/20">
+        <div class="flex items-center gap-space-sm min-w-0">
+          <span class="material-symbols-outlined text-[24px] ${r.filename.toLowerCase().endsWith(".pdf") ? "text-error" : "text-secondary"}">${r.filename.toLowerCase().endsWith(".pdf") ? "picture_as_pdf" : "description"}</span>
+          <div class="min-w-0">
+            <div class="text-sm text-on-surface font-semibold truncate max-w-[280px]">${esc(r.filename)}</div>
+            <div class="text-[11px] text-on-surface-variant">Uploaded ${esc(new Date(r.uploaded_at).toLocaleString())} · ${(r.size_bytes / 1024).toFixed(0)} KB · ${r.word_count} words</div>
+          </div>
+        </div>
+        <button id="delete-resume" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-surface-container-high text-error text-xs font-semibold hover:bg-error-container/30 transition-colors no-print" type="button">
+          <span class="material-symbols-outlined text-[16px]">delete</span>Remove
+        </button>
+      </div>`;
+    $("delete-resume").addEventListener("click", async () => {
+      if (!confirm("Remove your stored resume from this app?")) return;
+      try { await api(`/api/resume/${me}`, { method: "DELETE" }); Shell.toast("Resume removed."); await loadResume(); }
+      catch (err) { Shell.toast(err.message); }
+    });
+  }
+
+  // ---------------- Findings ----------------
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); Shell.toast("Copied — paste it into your resume."); }
+    catch { Shell.toast(text); }
+  }
+
+  function renderFindings() {
+    if (!resume.analysis) { $("findings").classList.add("hidden"); $("ai-card").classList.add("hidden"); return; }
+    $("findings").classList.remove("hidden"); $("ai-card").classList.remove("hidden");
+    const a = resume.analysis;
+    $("findings").innerHTML = `
+      <div class="flex items-center justify-between mb-space-md">
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-[22px]">bolt</span><h3 class="text-title-lg font-bold text-on-surface">High-Yield Improvements</h3></div>
+        <span class="text-[11px] text-on-surface-variant">${a.findings.length} finding${a.findings.length === 1 ? "" : "s"} from your record</span>
+      </div>
+      <div class="flex flex-col gap-space-md">${a.findings.map((f, i) => {
+        const action = f.kind === "verified_skill_missing" ? `<button data-copy="${i}" class="shrink-0 px-space-md py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-colors">Copy skills line</button>`
+          : f.kind === "career_gap" ? `<a href="pathways.html${apiQuery()}" class="shrink-0 px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors">See courses</a>`
+          : f.kind === "experience_missing" ? `<button data-copy="${i}" class="shrink-0 px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest transition-colors">Copy entries</button>` : "";
+        return `
+          <div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-space-md">
+            <div class="space-y-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${PRIORITY[f.priority]}">${esc(f.priority)}</span>
+                <span class="material-symbols-outlined text-[18px] text-secondary">${KIND_ICON[f.kind] || "info"}</span>
+                <h4 class="text-sm font-bold text-on-surface">${esc(f.title)}</h4>
+              </div>
+              <p class="text-xs text-on-surface-variant">${esc(f.detail)}</p>
+              ${f.items.length ? `<div class="flex flex-wrap gap-1.5 pt-1">${f.items.map((it) => `<code class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[11px] text-primary">${esc(it)}</code>`).join("")}</div>` : ""}
+            </div>${action}
+          </div>`;
+      }).join("") || `<div class="text-xs text-emerald-400">No issues found — nice work.</div>`}</div>`;
+    $("findings").querySelectorAll("[data-copy]").forEach((b) => b.addEventListener("click", () => {
+      const f = a.findings[+b.dataset.copy];
+      copy(f.kind === "verified_skill_missing" ? `Skills: ${a.verified_skills_missing.map((s) => s.skill).join(", ")}` : f.items.join("\n"));
+    }));
+
+    $("ai-card").innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-space-sm">
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[22px]">auto_awesome</span><h3 class="text-title-lg font-bold text-on-surface">AI Rewrite Suggestions</h3></div>
+        <button id="ai-btn" class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-colors disabled:opacity-50" type="button">Get suggestions</button>
+      </div>
+      <p class="text-[11px] text-on-surface-variant" id="ai-note">Sends your resume text and the findings above to Gemini for this request only. Suggestions never invent numbers — you'll see placeholders like [N%] to fill with your real figures.</p>
+      <div id="ai-out" class="md text-sm text-on-surface mt-space-sm"></div>`;
+    $("ai-btn").addEventListener("click", aiFeedback);
+  }
+
+  async function aiFeedback() {
+    $("ai-btn").disabled = true;
+    $("ai-out").innerHTML = `<span class="typing text-on-surface-variant"><span>●</span><span>●</span><span>●</span></span>`;
+    try {
+      const q = career ? `?career=${encodeURIComponent(career)}` : "";
+      const r = await api(`/api/resume/${me}/ai-feedback${q}`, { method: "POST" });
+      $("ai-out").innerHTML = md(r.suggestions);
+    } catch (err) {
+      $("ai-out").innerHTML = `<span class="text-error">${esc(err.message)}</span>`;
+    } finally { $("ai-btn").disabled = false; }
+  }
+
+  // ---------------- Sources ----------------
+  function renderSources() {
+    const s = dash.student, verified = portfolio ? portfolio.verified : [], projects = portfolio ? portfolio.projects : [];
+    const row = (icon, title, sub, ok) => `
+      <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-2 border border-outline-variant/20">
+        <div class="flex items-center gap-space-sm min-w-0">
+          <div class="w-8 h-8 rounded bg-surface-container-highest text-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[18px]">${icon}</span></div>
+          <div class="min-w-0"><div class="text-xs font-semibold text-on-surface">${title}</div><div class="text-[11px] text-on-surface-variant truncate">${sub}</div></div>
+        </div>
+        <span class="material-symbols-outlined text-[22px] ${ok ? "text-emerald-400" : "text-outline"}">${ok ? "check_circle" : "radio_button_unchecked"}</span>
+      </div>`;
+    $("sources").innerHTML = `
+      <div class="flex items-center justify-between pb-space-sm mb-space-md border-b border-outline-variant/20">
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-secondary">source</span><h3 class="text-sm font-bold text-on-surface">Where this page's facts come from</h3></div>
+      </div>
+      <div class="flex flex-col gap-space-sm">
+        ${row("school", "Academic record", `${s.completed_courses.length} completed courses · skills verified from the course catalog`, true)}
+        ${row("work_history", "Experience record", `${verified.filter((v) => v.kind === "experience").length} internships, research, hackathons & certifications on file`, true)}
+        ${row("description", "Your resume", resume.resume ? `${esc(resume.resume.filename)} · you uploaded it` : "Not uploaded yet", !!resume.resume)}
+        ${row("construction", "Your projects", projects.length ? `${projects.length} self-reported` : "None added yet", projects.length > 0)}
+      </div>
+      <p class="text-[10px] text-outline mt-space-sm">Records come from the synthetic HackUMBC dataset. Resume and projects are stored only in this app.</p>`;
+  }
+
+  // ---------------- Portfolio ----------------
+  function renderPortfolio() {
+    const card = (badge, badgeCls, icon, title, sub, body, tags, footer) => `
+      <article class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col justify-between hover:border-primary-container/40 transition-colors relative overflow-hidden group">
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-space-sm">
+            <span class="px-2 py-0.5 rounded text-[11px] font-semibold ${badgeCls}">${badge}</span>
+            <span class="material-symbols-outlined text-secondary text-[18px]">${icon}</span>
+          </div>
+          <h3 class="text-title-lg font-bold text-on-surface mb-space-xs group-hover:text-primary transition-colors">${title}</h3>
+          <p class="text-xs text-on-surface-variant mb-space-sm">${sub}</p>
+          ${body ? `<p class="text-sm text-on-surface-variant mb-space-md leading-relaxed">${body}</p>` : ""}
+          ${tags.length ? `<div class="flex flex-wrap gap-1.5 mb-space-md">${tags.map((t) => `<span class="px-2 py-0.5 rounded bg-surface-container text-primary text-[11px] font-medium">${esc(t)}</span>`).join("")}</div>` : ""}
+        </div>
+        <div class="pt-space-sm border-t border-outline-variant/20 flex items-center justify-between gap-2 text-[11px]">${footer}</div>
+      </article>`;
+    const verified = portfolio.verified.map((v) => card(
+      `Verified · ${esc(v.category)}`, "bg-emerald-500/10 text-emerald-400", v.kind === "coursework" ? "menu_book" : (EXP_ICON[v.category] || "star"),
+      esc(v.title), `${esc(v.subtitle)} · ${esc(v.term)}`, "", v.skills,
+      `<span class="text-on-surface-variant">From your student record</span>${v.outcome ? `<span class="font-bold text-secondary">${esc(v.outcome)}</span>` : ""}`,
+    ));
+    const projects = portfolio.projects.map((p) => card(
+      "Self-reported project", "bg-secondary/15 text-secondary", "construction", esc(p.title),
+      `Added ${esc(new Date(p.created_at).toLocaleDateString())}`, esc(p.description), p.skills,
+      `${p.link ? `<a class="inline-flex items-center gap-1 text-primary font-semibold hover:underline" href="${esc(p.link)}" target="_blank" rel="noopener noreferrer"><span class="material-symbols-outlined text-[16px]">open_in_new</span>Open link</a>` : `<span class="text-on-surface-variant">No link</span>`}
+       <button data-del="${p.id}" class="text-error font-semibold hover:underline no-print">Remove</button>`,
+    ));
+    $("portfolio").innerHTML = [...projects, ...verified].join("") || `<div class="text-sm text-on-surface-variant">Nothing here yet — add a project below.</div>`;
+    $("portfolio").querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", async () => {
+      if (!confirm("Remove this project?")) return;
+      try { await api(`/api/portfolio/${me}/projects/${b.dataset.del}`, { method: "DELETE" }); await loadPortfolio(); }
+      catch (err) { Shell.toast(err.message); }
+    }));
+  }
+
+  async function addProject(e) {
+    e.preventDefault();
+    $("project-error").classList.add("hidden");
+    const body = {
+      title: $("p-title").value.trim(),
+      description: $("p-desc").value.trim(),
+      link: $("p-link").value.trim() || null,
+      skills: $("p-skills").value.split(",").map((s) => s.trim()).filter(Boolean),
+    };
+    try {
+      const p = await api(`/api/portfolio/${me}/projects`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const dropped = body.skills.filter((s) => !p.skills.some((k) => k.toLowerCase() === s.toLowerCase()));
+      Shell.toast(dropped.length ? `Project added. Not in the skill vocabulary: ${dropped.join(", ")}` : "Project added.");
+      $("project-form").reset();
+      await loadPortfolio();
+    } catch (err) {
+      $("project-error").textContent = err.status === 422 ? "Check the title and make sure the link starts with http:// or https://." : err.message;
+      $("project-error").classList.remove("hidden");
+    }
+  }
+
+  // ---------------- Load ----------------
+  async function upload(file) {
+    const form = new FormData();
+    form.append("file", file);
+    $("upload-label").textContent = "Analyzing…";
+    try {
+      resume = await api(`/api/resume/${me}`, { method: "POST", body: form });
+      career = "";
+      $("career-select").value = resume.analysis.target_career;
+      renderDiagnostic(); renderFindings(); renderSources();
+      Shell.toast("Resume analyzed.");
+    } catch (err) {
+      Shell.toast(err.message);
+      renderDiagnostic();
+    } finally { $("file").value = ""; }
+  }
+
+  async function loadResume() {
+    const q = career ? `?career=${encodeURIComponent(career)}` : "";
+    resume = await api(`/api/resume/${me}${q}`);
+    if (resume.analysis) $("career-select").value = resume.analysis.target_career;
+    renderDiagnostic(); renderFindings(); renderSources();
+  }
+
+  async function loadPortfolio() {
+    portfolio = await api(`/api/portfolio/${me}`);
+    renderPortfolio(); if (resume) renderSources();
+  }
+
+  async function init() {
+    try {
+      const [d, careers] = await Promise.all([api(`/api/dashboard/${me}`), api("/api/careers")]);
+      dash = d; Shell.setStudent(d.student);
+      $("career-select").innerHTML = careers.careers.map((c) => `<option value="${esc(c.career)}">${esc(c.career)}</option>`).join("");
+      await Promise.all([loadResume(), loadPortfolio()]);
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("file").addEventListener("change", () => { if ($("file").files[0]) upload($("file").files[0]); });
+  $("career-select").addEventListener("change", () => { career = $("career-select").value; loadResume().catch((e) => Shell.toast(e.message)); });
+  $("reeval").addEventListener("click", () => loadResume().then(() => Shell.toast("Re-evaluated.")).catch((e) => Shell.toast(e.message)));
+  $("project-form").addEventListener("submit", addProject);
+  init();
+})();
+</script>
+</body></html>

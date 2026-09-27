@@ -8,6 +8,7 @@ from app.config import BASE_DIR, Settings
 from app.data.loader import load_data
 from app.main import create_app
 from app.models.advisor import MemoryItem
+from app.models.auth import CurrentUser
 from app.services.career_matching import build_career_profiles
 
 # Real students from the supplied dataset (see data/students_current.md sample rows).
@@ -15,6 +16,9 @@ TRANSFER_JUNIOR = "CID-116490"
 FIRST_TERM = "CID-227285"
 IS_FRESHMAN = "CID-514009"
 ALUMNUS = "CID-655977"
+
+STUDENT_PASSWORD = "student-pw"
+ADVISOR_PASSWORD = "advisor-pw"
 
 
 @pytest.fixture(scope="session")
@@ -50,6 +54,7 @@ class FakeMemory:
 
     def __init__(self, error=None, configured=True):
         self.store: dict[str, list[MemoryItem]] = {}
+        self.goals: dict[str, str] = {}
         self.error = error
         self.configured = configured
 
@@ -71,10 +76,27 @@ class FakeMemory:
         self._check()
         self.store.setdefault(campus_id, []).append(item)
 
+    async def get_career_goal(self, campus_id):
+        self._check()
+        return self.goals.get(campus_id)
+
+    async def set_career_goal(self, campus_id, career):
+        self._check()
+        self.goals[campus_id] = career
+
 
 @pytest.fixture(scope="session")
-def app():
-    settings = Settings(_env_file=None, gemini_api_key=None, backboard_api_key=None)
+def app(tmp_path_factory):
+    settings = Settings(
+        _env_file=None,
+        app_db_path=tmp_path_factory.mktemp("appdata") / "test.db",
+        gemini_api_key=None,
+        backboard_api_key=None,
+        auth_secret="test-secret",
+        student_demo_password=STUDENT_PASSWORD,
+        advisor_username="advisor",
+        advisor_password=ADVISOR_PASSWORD,
+    )
     return create_app(settings)
 
 
@@ -84,12 +106,35 @@ def base_client(app):
         yield client
 
 
+def _headers(app, user: CurrentUser) -> dict[str, str]:
+    return {"Authorization": f"Bearer {app.state.auth.issue(user).token}"}
+
+
+@pytest.fixture(scope="session")
+def advisor_client(app, base_client):
+    """Signed in as an advisor. Shares app state (loaded by base_client's lifespan)."""
+    return TestClient(app, headers=_headers(app, CurrentUser(role="advisor", campus_id=None, display_name="Advisor")))
+
+
+@pytest.fixture(scope="session")
+def student_client(app, base_client):
+    """Factory: a client signed in as the given current student."""
+
+    def _make(campus_id: str = TRANSFER_JUNIOR) -> TestClient:
+        user = CurrentUser(role="student", campus_id=campus_id, display_name=campus_id)
+        return TestClient(app, headers=_headers(app, user))
+
+    return _make
+
+
 @pytest.fixture
-def make_client(app, base_client):
-    def _make(gemini=None, memory=None):
+def make_client(app, student_client):
+    """A student-signed-in client with fake Gemini/Backboard injected."""
+
+    def _make(gemini=None, memory=None, as_student: str = TRANSFER_JUNIOR):
         app.dependency_overrides[get_gemini] = lambda: gemini or FakeGemini()
         app.dependency_overrides[get_memory] = lambda: memory or FakeMemory()
-        return base_client
+        return student_client(as_student)
 
     yield _make
     app.dependency_overrides.clear()

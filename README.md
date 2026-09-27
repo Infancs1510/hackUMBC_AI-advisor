@@ -333,6 +333,30 @@ This means:
 
 # API
 
+## Authentication
+
+This is a simple demo login, not production authentication.
+
+```http
+POST /api/auth/login   {"username": "CID-116490", "password": "umbc-demo"}
+GET  /api/auth/me
+```
+
+* **Students** sign in with their campus ID and the shared `STUDENT_DEMO_PASSWORD`. Only current students can sign in.
+* **Advisors** sign in with `ADVISOR_USERNAME` / `ADVISOR_PASSWORD`.
+* Login returns a bearer token (HMAC-signed with `AUTH_SECRET`, valid for 8 hours). Send it as `Authorization: Bearer <token>`.
+* Every failed login returns the same `401`, so the response doesn't reveal which IDs exist.
+
+| Endpoint | Signed out | Student | Advisor |
+| --- | --- | --- | --- |
+| `/api/health`, `/api/careers*` | ✓ | ✓ | ✓ |
+| `/api/dashboard/{id}`, `/api/degree/{id}`, `/api/roadmap/{id}`, `/api/market/{id}` | 401 | own ID only | any student |
+| `/api/alumni/{id}` | 401 | 403 | ✓ |
+| `/api/caseload` | 401 | 403 | ✓ |
+| `/api/advisor`, `/api/advisor/{id}/memories`, `/api/students/{id}/career-goal` | 401 | own ID only | 403 (chat, memory and goals are personal) |
+
+---
+
 ## Health
 
 ```http
@@ -340,6 +364,26 @@ GET /api/health
 ```
 
 Returns backend status.
+
+---
+
+## Caseload (advisors)
+
+```http
+GET /api/caseload?q=&major=&class_level=&standing=&career=&flag=&sort=flags&page=1&page_size=25
+```
+
+Lists every current student with their GPA, credits, standing, internships, top career match, and attention flags. It also returns filter options and the number of students with each flag. The caseload is precomputed at startup.
+
+Flags are calculated from the dataset:
+
+| Flag | Rule |
+| --- | --- |
+| `academic_standing` | Academic Warning or Academic Probation |
+| `no_internship` | Junior or Senior with no internship or co-op |
+| `low_career_match` | Junior or Senior whose top career match is below 30 (the junior median is 50) |
+
+`sort` is one of `flags`, `campus_id`, `gpa_asc`, `gpa_desc`, `match_asc`, `match_desc`.
 
 ---
 
@@ -428,6 +472,222 @@ Arrays are abbreviated above. Field notes:
 
 ---
 
+## Degree audit
+
+```http
+GET /api/degree/{campus_id}
+```
+
+The degree audit for a current student. The student can see their own; advisors can see any student's. It returns:
+
+* the transcript grouped by `requirement_category` (Major Core, Major Elective, Supporting Coursework, General Education), with completed and in-progress credits for each;
+* **remaining required courses**: catalog courses whose `required_for_majors` includes the student's major and that the student hasn't taken, each with a prerequisite status and whether it's offered next term;
+* **courses satisfied by prior credit**: required courses implied by transfer credit (for example, CMSC201 when the student passed CMSC202);
+* F and W attempts;
+* a credit summary: earned, in progress, remaining after this term, upper-division, and transfer credits.
+
+The dataset doesn't define how many credits each category requires, so the audit reports only credits completed, never "X of Y".
+
+---
+
+## Roadmap
+
+```http
+GET /api/roadmap/{campus_id}?career=
+```
+
+A suggested term-by-term plan toward graduation and a target career. The target defaults to the student's top match. The student can see their own; advisors can see any student's.
+
+How the plan is built:
+
+1. **Targets:** the major's remaining required courses, plus career courses chosen by a cost-aware greedy set cover. Each course's value is its weighted coverage of the career's missing skills divided by 1 + the prerequisites it would add, within a budget of 6 extra courses.
+2. **Prerequisites:** unmet prerequisites are added transitively.
+3. **Scheduling:** courses are placed from Spring 2027 onward (Spring and Fall only), in terms when they're typically offered and after their prerequisites, with at most 4 per term. Courses that unlock the longest chains go first.
+4. **After expected graduation:** only required courses are still placed. Career courses that don't fit are listed in `unscheduled`, and the skills still missing are listed in `skills_after_plan_missing`.
+
+Each term reports the match score once it's complete. General education and elective credits are not planned.
+
+---
+
+## Market insights
+
+```http
+GET /api/market/{campus_id}?major=Computer%20Science
+```
+
+A market view built from **alumni outcomes, not live job postings**. The alumni's entry-level job records stand in for the market. The student can see their own; advisors can see any student's. `major` limits the view to alumni of one major.
+
+It returns:
+
+* headline figures: entry-level role counts, the median first-job salary (nominal) overall and by major, and the clearance and remote shares;
+* **career shifts:** each career's change in share of entry roles between 2015–2020 and 2023–2026, in percentage points;
+* **skill demand:** the top skills in entry roles, their trend, and whether the student has each one (or which catalog course teaches it);
+* **rising skills;**
+* **industry placement:** alumni first-job industries with the median salary for each, and first-destination shares among alumni who reported an outcome;
+* **personal fit:** the average share of a recent entry role's skills the student has, the most in-demand skills they're missing (with a course for each), and the recent alumni roles (2023–26) most like their skill set.
+
+---
+
+## Career goal
+
+```http
+GET /api/students/{campus_id}/career-goal
+PUT /api/students/{campus_id}/career-goal   {"career": "Cybersecurity"}
+```
+
+Saves the student's primary career goal in **Backboard memory**, since a goal is a preference, not an academic fact. Saving a new goal replaces the previous one. The AI advisor sees the goal in its memory search and focuses on that career. Only the student can use this endpoint.
+
+---
+
+## Appointments
+
+```http
+GET  /api/appointments/slots
+GET  /api/appointments?include_past=false
+POST /api/appointments                 {"reason": "course_planning", "modality": "virtual", "start": "2026-09-29T10:00:00-04:00", "notes": "..."}
+PATCH /api/appointments/{id}           {"start": "...", "modality": "...", "notes": "..."}
+POST /api/appointments/{id}/cancel
+POST /api/appointments/{id}/complete          advisor
+POST /api/appointments/{id}/no-show           advisor, once the appointment has started
+GET  /api/appointments/schedule?week=         advisor week view (any date in the week; weekends show the coming week)
+PUT  /api/appointments/{id}/session-note      advisor {"note": "..."}; empty clears it
+```
+
+Advising appointments are **data the app creates**, so they're stored in a small SQLite database (`APP_DB_PATH`, default `app_data/app.db`, git-ignored), separate from the read-only CSVs.
+
+* **Slots:** 30-minute sessions on weekdays (six a day) for the next two working weeks, in `ADVISING_TIMEZONE` (default America/New_York), with at least 2 hours' notice.
+* **Booking rules:** a database index makes double-booking a slot impossible, and each student can have only one upcoming appointment (change it with reschedule).
+* **Advising brief:** when a student books, the backend saves a brief from their record for the advisor: GPA, credits, standing, expected graduation, remaining required courses, top career match, and the saved career goal from Backboard.
+* **Access:** students book, reschedule and cancel their own appointments. Advisors see everyone's upcoming appointments with the briefs, and can cancel them.
+* **Advisor week view:** every Monday–Friday slot with its state (open, unbooked, booked, completed, no-show), the appointment and brief, cancelled appointments, and weekly totals.
+* **Session notes:** private advisor notes per appointment. They're returned only by the advisor schedule endpoint and never to students.
+* **No email:** nothing is sent. The page offers an `.ics` "Add to calendar" download.
+
+---
+
+## Reports
+
+```http
+GET    /api/reports                    catalog: every report with a live headline figure, plus a data snapshot
+POST   /api/reports/{key}/runs         build from current data and save a snapshot (columns + rows)
+GET    /api/report-runs                saved snapshots, newest first (the most recent 30 are kept)
+GET    /api/report-runs/{id}
+DELETE /api/report-runs/{id}
+```
+
+Advisor-only. Reports: `caseload_progress`, `attention_roster` (warning/probation or graduation risk, with review notes, meeting requests and appointments), `gateway_outcomes` (lower-level core courses: pass and D/F/W rates and repeats, across all transcripts, IP excluded), `career_alignment`, `alumni_outcomes` (first job family, nominal median salary), `advising_activity` (everything recorded in the app), and `course_demand` (remaining required courses students can take next term — an estimate, not registration data). The page builds the CSV and a printable view (save as PDF from the print dialog) in the browser.
+
+---
+
+## Resume & portfolio
+
+```http
+GET    /api/resume/{campus_id}?career=           latest resume + analysis
+POST   /api/resume/{campus_id}                    multipart "file": PDF, DOCX, TXT or MD (2 MB max)
+DELETE /api/resume/{campus_id}
+POST   /api/resume/{campus_id}/ai-feedback?career=
+GET    /api/portfolio/{campus_id}
+POST   /api/portfolio/{campus_id}/projects        {"title", "description", "link", "skills"}
+DELETE /api/portfolio/{campus_id}/projects/{id}
+```
+
+* **Storage:** only the latest resume is kept, in the app SQLite database. It is never saved to Backboard, and it's sent to Gemini only when the student requests AI suggestions.
+* **Readiness score:** from a published rubric, **not an ATS score**. Every component is shown.
+
+  | Component | Weight | What it measures |
+  | --- | --- | --- |
+  | Target-career keywords | 35% | Coverage weighted by how often alumni roles listed each skill |
+  | Verified skills listed | 25% | Share of in-demand skills from completed courses that appear on the resume |
+  | Quantified bullets | 20% | Bullets with a number, % or $, ignoring years and dates |
+  | Structure | 20% | Section headings, a contact email, and length |
+
+  Components that don't apply (e.g. no completed courses yet) are left out, and the other weights are rescaled.
+* **Skill detection:** uses the dataset's 119-skill vocabulary with a small alias table (GitHub → Git / Version Control, PostgreSQL → SQL, Docker → Containers…). The single-letter skills C and R only count as list items.
+* **Findings come from the record:**
+  * skills earned in completed courses but missing from the resume (with the courses);
+  * internships, research, hackathons and competitive teams on record that the resume doesn't mention;
+  * core career skills not covered by the resume or courses;
+  * unquantified bullets and missing sections;
+  * skills claimed without course evidence.
+* **AI suggestions:** Gemini is told to suggest only what the findings or the resume support and to use placeholders like `[N%]` instead of inventing metrics.
+* **Portfolio:**
+  * *verified* items from the record: internships, co-ops, research, hackathons, competitive teams, certifications, and completed upper-level courses with their skills;
+  * *self-reported* projects the student adds. Their skills are limited to the dataset vocabulary, so they line up with career matching.
+
+Students manage their own resume and projects. Advisors can view a student's portfolio but not their resume.
+
+---
+
+## Advisor workflow
+
+```http
+GET    /api/advisor-dashboard
+GET    /api/caseload?reviewed=false&flagged=true&flag=graduation_risk&track=Cybersecurity
+PUT    /api/caseload/{campus_id}/review      {"note": "..."}
+DELETE /api/caseload/{campus_id}/review
+POST   /api/meeting-requests                 {"campus_id", "reason", "message"}   (advisor)
+GET    /api/meeting-requests                 (students: their own open requests; advisors: all open)
+POST   /api/meeting-requests/{id}/dismiss
+POST   /api/appointments/{id}/complete       (advisor)
+```
+
+* **Dashboard summary:**
+  * caseload counts by major and class level, standing counts, flag counts, and reviewed/unreviewed counts;
+  * upcoming appointments;
+  * the track distribution, and the top-career distribution;
+  * next-term **course demand**: remaining required courses students can take next term, counted across the caseload;
+  * the fastest-rising alumni career, with how many students top-match it.
+* **Graduation-risk flag:** set when a degree-only roadmap can't fit a student's remaining required courses before their expected graduation. It ignores career targets, because the planner always schedules degree courses before career electives.
+* **Reviews and meeting requests:** stored in the app database alongside appointments. A student sees an open request on their Appointments page, and booking any appointment answers it.
+* **Caseload build:** the caseload (with a roadmap per student) and the pathway analytics are built in a background thread at startup and cached.
+
+```http
+GET /api/analytics/pathways     (advisor)
+```
+
+Cohort analytics for all current students:
+
+* **KPIs:**
+  * **on pace:** the share whose degree plan fits before expected graduation;
+  * the credit-weighted Major Core average grade, and GPA bands;
+  * **foundation complete:** sophomores and above with no lower-division required courses left;
+  * internship participation for juniors and seniors.
+* **Tracks and class levels:** per track, students, average GPA, capstone readiness (CMSC447 / IS450) and top career matches; per class level, on-pace vs graduation-risk counts.
+* **Course bottlenecks:** the highest historical D/F/W rates across students and alumni (200+ attempts). Rated "high" at 1.7× the median and "moderate" at 1.4×. Each shows current enrolment, next-term demand, and students with an unfinished F/W.
+* **Career alignment:** per career, the students who top-match it, the alumni share trend, how many have every core skill, and the **bridge course** that would give the most of them a missing core skill.
+* **Interventions:** rules over the analytics above, each with an action (batch meeting requests, or a pre-filtered roster link).
+
+There are no seat counts, waitlists or pass-rate targets in the dataset, so none are shown.
+
+---
+
+## Registration plans
+
+```http
+GET    /api/plans/{campus_id}              student's next-term plan + roadmap suggestions (student or advisor)
+POST   /api/plans/{campus_id}/validate     check a draft {"courses": [...]}
+PUT    /api/plans/{campus_id}              submit / resubmit {"courses": [...], "note": "..."}
+DELETE /api/plans/{campus_id}              withdraw
+GET    /api/plans?status=&category=        advisor review queue
+POST   /api/plans/{id}/approve             {"note": "..."}           (blocked plans can't be approved)
+POST   /api/plans/{id}/request-changes     {"note": "..."}           (note required)
+POST   /api/plans-approve-ready            batch-approve every "ready" plan
+```
+
+This is an in-app review of students' next-term course plans. **It doesn't register students or change university holds**; the UI says so.
+
+* **Course checks:** each course is checked against the catalog and the student's record.
+  * **Blocked:** not in the catalog, already completed (including transfer credit implied by later courses), in progress now, or missing a prerequisite after this term.
+  * **Warning:** not usually offered in Spring.
+  * **Credit load:** under 12 or over 18 credits is flagged.
+* **Categories:**
+  * **meeting:** the student is on academic warning or probation, or has graduation risk. These never batch-approve.
+  * **prereq:** any course is blocked or has a warning.
+  * **ready:** everything else.
+* **Demo data:** `python -m scripts.seed_demo_plans` adds about 12 plans marked `[demo]` so the queue has something in it; `--clear` removes them.
+
+---
+
 ## Alumni
 
 ```http
@@ -460,7 +720,12 @@ The match score is the frequency-weighted share of a career's skills that the st
 GET /api/careers/{career}
 ```
 
-Returns historical career information and observed salary/skill statistics: skill frequencies, skills by seniority, salary by seniority and start year, and alumni first-job outcomes (internship share, remote share, how the job was found).
+Returns historical career information and observed salary/skill statistics:
+
+* skill frequencies and skills by seniority;
+* salary by seniority and start year;
+* the **entry-level market**: top employers (fictitious names), top regions, and the share of roles needing a clearance or working remotely;
+* alumni first-job outcomes: internship share, remote share, how the job was found, and the certifications those alumni held.
 
 Career names are case-insensitive. URL-encode `&`, e.g. `/api/careers/IT%20Business%20%26%20Product`.
 
@@ -597,6 +862,12 @@ FRONTEND_ORIGIN=http://localhost:3000
 | `BACKBOARD_API_KEY` | — | Without it, the advisor runs without memory. |
 | `FRONTEND_ORIGIN` | `http://localhost:3000` | Comma-separated list of allowed CORS origins. |
 | `DATA_DIR` | `./data` | Folder containing the six CSVs. |
+| `AUTH_SECRET` | random at startup | Signs login tokens. Set it so sessions survive restarts. |
+| `STUDENT_DEMO_PASSWORD` | `umbc-demo` | Shared password for every student account. |
+| `ADVISOR_USERNAME` / `ADVISOR_PASSWORD` | `advisor` / `advisor-demo` | Advisor login. |
+| `ADVISOR_DISPLAY_NAME` | `Academic Advisor` | Name shown on the appointments page. |
+| `APP_DB_PATH` | `app_data/app.db` | SQLite file for appointments. |
+| `ADVISING_TIMEZONE` | `America/New_York` | Time zone for advising slots. |
 
 Never commit `.env`.
 
@@ -632,19 +903,36 @@ http://localhost:8000/docs
 
 ---
 
-# Frontend integration
+# Frontend
 
-The frontend is a separate HTML/CSS/JavaScript application.
+`frontend/` is a plain HTML/CSS/JavaScript app with no build step:
 
-The frontend should primarily:
+| Page | Who | What |
+| --- | --- | --- |
+| `index.html` | everyone | Sign in, with Student and Advisor tabs |
+| `student.html` | students | Overview: profile, skills, career alignment, focus pathway, and the AI advisor chat |
+| `degree.html` | students | Degree & Skills: requirement categories, remaining required courses, skills matrix, experiential learning, credit mix |
+| `market.html` | students | Market Insights: headline figures, skill demand vs. your skills, rising skills and career shifts, industry placement, your alignment, alumni roles like yours |
+| `appointments.html` | students | Book, reschedule or cancel an advising session; preview the brief the advisor receives; add to calendar (.ics); preparation checklist |
+| `resume.html` | students | Resume & Portfolio: upload (PDF/DOCX/TXT), readiness rubric, record-grounded findings, AI rewrite suggestions, verified + self-reported portfolio |
+| `plan.html` | students | Spring course plan: build from roadmap suggestions or open requirements, live catalog checks, submit for advisor review, see the decision |
+| `pathways.html` | students | Career Pathways: career cards, deep dive (employers, regions, salary, key courses with score gains, alumni certifications, skill readiness), roadmap, save a career goal |
+| `advisor.html` | advisors | Advisor dashboard: caseload KPIs, attention queue (mark reviewed, request a meeting), track and career distribution, schedule with briefs (complete or cancel), data alerts |
+| `roster.html` | advisors | Student roster & triage: summary strip; filters (search, major, track, class, standing, flag, review status); sorting and paging; follow-up status (review note, meeting request, appointment); single or batch meeting requests; CSV export of the current filter; urgent watchlist; flag definitions |
+| `schedule.html` | advisors | Appointments & schedule: week navigator, day timeline with the current or next session spotlighted (brief, complete / no-show / cancel), week grid, capacity strip, private session notes, flagged students with no appointment (request a meeting), booking rules |
+| `reports.html` | advisors | Reports & exports: data sources, seven report cards with live figures (CSV or print/PDF), saved report history with re-download, print and delete |
+| `plans.html` | advisors | Plan review queue: ready / prerequisite check / meeting-first categories, per-course checks, approve, request changes with a note, batch-approve ready plans |
+| `analytics.html` | advisors | Degree pathway analytics: KPIs, track concentrations, progression by class level, course bottlenecks (with follow-up requests), career alignment and bridge courses, suggested interventions |
+| `student-file.html` | advisors | Read-only student file (`#CID-…`): the student's dashboard, or the alumni view for alumni IDs |
 
-1. Select a student.
-2. Call the dashboard endpoint.
-3. Render the returned JSON.
-4. Display career matches.
-5. Display pathways.
-6. Display salary information.
-7. Send advisor questions to `/api/advisor`.
+Run it next to the API:
+
+```bash
+uvicorn app.main:app --reload             # API on :8000
+python3 -m http.server 3000 -d frontend   # UI on http://localhost:3000
+```
+
+The UI calls `http://localhost:8000` by default. Add `?api=https://...` to the URL to point it elsewhere. The session token is kept in `sessionStorage`, one per browser tab.
 
 The frontend should not independently calculate:
 

@@ -1,0 +1,466 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Student Roster</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Heading -->
+  <div class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-md">
+    <div>
+      <div class="flex flex-wrap items-center gap-space-xs text-secondary mb-1">
+        <span class="material-symbols-outlined text-sm">hub</span>
+        <span class="font-label-code text-[11px] uppercase tracking-wider font-bold">CS &amp; IS advising</span>
+        <span class="text-outline-variant">•</span>
+        <span class="text-[11px] text-on-surface-variant font-medium" id="term-line">Spring 2027 planning</span>
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Student Roster &amp; <span class="text-primary-container">Academic Triage</span></h1>
+      <p class="text-body-md text-on-surface-variant max-w-3xl mt-1" id="lede">Search, segment, and follow up with current students. Flags and degree progress come from the dataset.</p>
+    </div>
+    <div class="flex items-center gap-space-sm flex-wrap no-print">
+      <button id="batch-btn" disabled class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors border border-outline-variant/30 disabled:opacity-40" type="button">
+        <span class="material-symbols-outlined text-base">event</span><span id="batch-label">Request meetings (0)</span>
+      </button>
+      <button id="csv-btn" class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-1.5 transition-colors border border-outline-variant/30" type="button">
+        <span class="material-symbols-outlined text-base">download</span><span id="csv-label">Export CSV</span>
+      </button>
+      <a id="queue-link" href="advisor.html#queue" class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary hover:bg-secondary text-xs font-bold flex items-center gap-2 transition-all shadow-[0_0_12px_rgba(255,179,0,0.3)]">
+        <span class="material-symbols-outlined text-base">priority_high</span><span>Attention queue</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary strip -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md" id="stats"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+
+  <!-- Filters -->
+  <div class="p-space-md rounded-xl bg-surface-container-low border border-surface-container shadow-xl no-print">
+    <div class="flex flex-col lg:flex-row gap-space-md items-stretch lg:items-center justify-between">
+      <div class="relative flex-1 min-w-[240px]">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+        <input id="q" class="w-full pl-10 pr-space-md py-2 bg-surface-container rounded-lg text-sm text-on-surface placeholder:text-outline border border-outline-variant/30 focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Filter by campus ID (e.g. 1164)" autocomplete="off">
+      </div>
+      <div class="flex flex-wrap items-center gap-space-sm text-xs" id="selects"></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+    <!-- Table -->
+    <section class="xl:col-span-8 2xl:col-span-9 rounded-xl bg-surface-container-low border border-surface-container shadow-xl overflow-hidden flex flex-col min-w-0">
+      <div class="px-space-md py-space-sm bg-surface-container flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-base">format_list_bulleted</span>
+          <span class="text-sm font-bold text-on-surface">Student Directory</span>
+          <span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-semibold" id="count">—</span>
+        </div>
+        <label class="flex items-center gap-2 text-[11px] text-on-surface-variant">Sort
+          <select id="sort" class="bg-surface-container-high text-on-surface text-xs rounded-lg border-outline-variant/30 py-1 pl-2 pr-7 focus:ring-primary">
+            <option value="flags">Risk priority (high → low)</option>
+            <option value="gpa_asc">GPA (low → high)</option>
+            <option value="gpa_desc">GPA (high → low)</option>
+            <option value="match_asc">Career match (low → high)</option>
+            <option value="match_desc">Career match (high → low)</option>
+            <option value="campus_id">Campus ID</option>
+          </select>
+        </label>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-surface-container-high/60 text-outline text-[11px] uppercase tracking-wider">
+              <th class="py-space-sm pl-space-md w-8 no-print"><input type="checkbox" id="select-all" aria-label="Select all on this page" class="rounded bg-surface-container border-outline-variant text-primary-container focus:ring-primary-container"></th>
+              <th class="py-space-sm px-space-md">Student</th>
+              <th class="py-space-sm px-space-md">GPA &amp; standing</th>
+              <th class="py-space-sm px-space-md">Degree progress</th>
+              <th class="py-space-sm px-space-md">Direction</th>
+              <th class="py-space-sm px-space-md">Follow-up</th>
+              <th class="py-space-sm px-space-md text-right no-print">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-container-high text-on-surface" id="rows">
+            <tr><td colspan="7" class="p-space-md text-on-surface-variant">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-space-md bg-surface-container flex flex-wrap items-center justify-between gap-2 text-[11px] text-on-surface-variant">
+        <span id="page-info"></span>
+        <div class="flex items-center gap-1" id="pager"></div>
+      </div>
+    </section>
+
+    <!-- Right column -->
+    <aside class="xl:col-span-4 2xl:col-span-3 flex flex-col gap-space-md">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="watchlist"><div class="text-sm text-on-surface-variant">Loading…</div></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="flag-help"></section>
+    </aside>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<!-- Meeting request modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-space-md">
+  <form id="modal-form" class="bg-surface-container-low border border-outline-variant/40 rounded-xl max-w-lg w-full p-space-lg shadow-2xl flex flex-col gap-space-md">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary-container">event</span><h3 class="text-title-lg font-bold text-on-surface" id="modal-title">Request a meeting</h3></div>
+      <button type="button" id="modal-close" class="text-on-surface-variant hover:text-on-surface" aria-label="Close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <p class="text-xs text-on-surface-variant" id="modal-sub"></p>
+    <label class="flex flex-col gap-1 text-xs text-on-surface-variant">Topic
+      <select id="modal-reason" class="bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary">
+        <option value="degree_check">Degree progress check</option>
+        <option value="course_planning">Course planning for next term</option>
+        <option value="career_planning">Career planning &amp; track electives</option>
+        <option value="internship_planning">Internship &amp; experience planning</option>
+      </select>
+    </label>
+    <label class="flex flex-col gap-1 text-xs text-on-surface-variant">Message they'll see (optional)
+      <textarea id="modal-message" maxlength="500" rows="3" class="bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary resize-none" placeholder="e.g. Let's check your Spring 2027 plan."></textarea>
+    </label>
+    <div id="modal-result" class="hidden text-xs"></div>
+    <div class="flex justify-end gap-2">
+      <button type="button" id="modal-cancel" class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold border border-outline-variant/30">Cancel</button>
+      <button type="submit" id="modal-submit" class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary disabled:opacity-50">Send request</button>
+    </div>
+  </form>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/advisor-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = AdvisorShell.mount({ active: "roster" });
+  if (!session) return;
+  const { toast, withApi } = AdvisorShell;
+  const fileLink = (cid) => withApi(`student-file.html#${cid}`);
+  $("queue-link").href = withApi("advisor.html#queue");
+
+  const FLAG_STYLE = {
+    academic_standing: ["Standing", "bg-error-container/30 text-error"],
+    graduation_risk: ["Graduation risk", "bg-error-container/30 text-error"],
+    no_internship: ["No internship", "bg-primary-container/15 text-primary"],
+    low_career_match: ["Low match", "bg-secondary/15 text-secondary"],
+  };
+  const REASON_FOR_FLAG = { academic_standing: "degree_check", graduation_risk: "degree_check", no_internship: "internship_planning", low_career_match: "career_planning" };
+  const FILTERS = [
+    ["major", "Major", "All majors", "majors"], ["track", "Track", "All tracks", "tracks"],
+    ["class_level", "Class", "All class levels", "class_levels"], ["standing", "Standing", "All standings", "standings"],
+    ["flag", "Flag", "Any flag", null], ["reviewed", "Review", "Any review status", null],
+  ];
+  const state = { q: "", sort: "flags", page: 1, pageSize: 20, filters: {}, facetsReady: false };
+  let lastRows = [], selected = new Set(), requests = new Map(), appointments = new Map(), dash = null;
+
+  // Other pages can link here pre-filtered, e.g. roster.html?flag=graduation_risk&reviewed=false.
+  const urlParams = new URLSearchParams(location.search);
+  for (const [key] of FILTERS) if (urlParams.get(key)) state.filters[key] = urlParams.get(key);
+  if (urlParams.get("q")) state.q = urlParams.get("q");
+
+  const fmtDate = (iso, withTime) => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", ...(withTime ? { hour: "numeric", minute: "2-digit" } : {}) }).format(new Date(iso));
+
+  function query(extra = {}) {
+    const p = new URLSearchParams({ sort: state.sort, page: state.page, page_size: state.pageSize, ...extra });
+    if (state.q) p.set("q", state.q);
+    for (const [k, v] of Object.entries(state.filters)) if (v !== "") p.set(k, v);
+    return p;
+  }
+
+  // ---------------- Filters ----------------
+  function renderSelects(facets) {
+    const options = {
+      flag: facets.flags.map((f) => [f.code, `${FLAG_STYLE[f.code][0]} (${facets.flag_counts[f.code]})`]),
+      reviewed: [["false", "Not reviewed"], ["true", "Reviewed"]],
+    };
+    $("selects").innerHTML = FILTERS.map(([key, label, all, facet]) => {
+      const opts = facet ? facets[facet].map((v) => [v, v]) : options[key];
+      return `<label class="flex items-center gap-1.5"><span class="text-outline font-semibold">${label}</span>
+        <select data-filter="${key}" class="bg-surface-container text-on-surface text-xs rounded-lg border-outline-variant/30 py-1.5 pl-2 pr-7 focus:ring-primary">
+          <option value="">${all}</option>${opts.map(([v, t]) => `<option value="${esc(v)}" ${state.filters[key] === v ? "selected" : ""}>${esc(t)}</option>`).join("")}
+        </select></label>`;
+    }).join("") + `<button id="reset" type="button" class="text-on-surface-variant hover:text-primary px-2 py-1 flex items-center gap-1 rounded hover:bg-surface-container-high"><span class="material-symbols-outlined text-sm">restart_alt</span>Reset</button>`;
+    $("selects").querySelectorAll("[data-filter]").forEach((s) => s.addEventListener("change", () => { state.filters[s.dataset.filter] = s.value; state.page = 1; load(); }));
+    $("reset").addEventListener("click", () => { state.filters = {}; state.q = ""; $("q").value = ""; state.sort = "flags"; $("sort").value = "flags"; state.page = 1; state.facetsReady = false; load(); });
+  }
+
+  // ---------------- Stats ----------------
+  function renderStats() {
+    const d = dash, total = d.total_students, good = d.standing_counts["Good Standing"] || 0;
+    const risk = (d.standing_counts["Academic Warning"] || 0) + (d.standing_counts["Academic Probation"] || 0);
+    $("term-line").textContent = `${d.next_term} planning`;
+    $("lede").textContent = `Search, segment, and follow up with ${total.toLocaleString()} current students. Flags and degree progress are calculated from the dataset.`;
+    const stat = (label, icon, value, tag, sub, tone = "") => `
+      <div class="p-space-md rounded-xl bg-surface-container-low border border-surface-container shadow-xl flex items-center justify-between gap-2">
+        <div>
+          <p class="text-[11px] ${tone === "error" ? "text-error" : "text-outline"} uppercase tracking-wider font-semibold">${label}</p>
+          <div class="flex items-baseline gap-space-xs mt-1"><span class="text-headline-lg font-bold ${tone === "error" ? "text-error" : "text-on-surface"}">${value}</span>${tag}</div>
+          <p class="text-xs text-outline mt-0.5">${sub}</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl ${tone === "error" ? "bg-error-container/30 text-error" : tone === "gold" ? "bg-primary-container/15 text-primary" : "bg-surface-container text-secondary"} flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-2xl">${icon}</span></div>
+      </div>`;
+    $("stats").innerHTML = [
+      stat("Current students", "groups", total.toLocaleString(), "", Object.entries(d.by_major).map(([m, n]) => `${m === "Computer Science" ? "CS" : "IS"} ${n.toLocaleString()}`).join(" · ")),
+      stat("Good standing", "verified", good.toLocaleString(), `<span class="text-[11px] font-bold text-secondary">${((good / total) * 100).toFixed(1)}%</span>`, "Academic standing on record"),
+      stat("Flagged", "warning", d.flagged_students, `<span class="px-1.5 py-0.5 rounded bg-primary-container/15 text-primary text-[11px] font-bold">${d.flagged_unreviewed} unreviewed</span>`, "Any attention flag", "gold"),
+      stat("Highest risk", "report", risk + d.flag_counts.graduation_risk, `<span class="text-[11px] text-error font-semibold">students</span>`, `${risk} warning/probation · ${d.flag_counts.graduation_risk} graduation risk`, "error"),
+    ].join("");
+  }
+
+  // ---------------- Table ----------------
+  function followUp(s) {
+    const parts = [];
+    const appt = appointments.get(s.campus_id), req = requests.get(s.campus_id);
+    if (appt) parts.push(`<span class="text-xs font-bold text-secondary flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>Appt ${esc(fmtDate(appt.start, true))}</span>`);
+    else if (req) parts.push(`<span class="text-xs font-semibold text-primary">Meeting requested ${esc(fmtDate(req.created_at))}</span>`);
+    if (s.reviewed_at) parts.push(`<span class="text-[11px] text-on-surface-variant" title="${esc(s.review_note || "")}">Reviewed ${esc(fmtDate(s.reviewed_at))}${s.review_note ? ` · ${esc(s.review_note.slice(0, 40))}${s.review_note.length > 40 ? "…" : ""}` : ""}</span>`);
+    return parts.join("") || `<span class="text-[11px] text-outline">No follow-up yet</span>`;
+  }
+
+  function row(s) {
+    const initials = s.campus_id.slice(-2);
+    const risky = s.flags.some((f) => f.code === "academic_standing" || f.code === "graduation_risk");
+    return `
+      <tr class="hover:bg-surface-container/70 transition-colors">
+        <td class="py-space-md pl-space-md no-print"><input type="checkbox" data-select="${esc(s.campus_id)}" ${selected.has(s.campus_id) ? "checked" : ""} aria-label="Select ${esc(s.campus_id)}" class="rounded bg-surface-container border-outline-variant text-primary-container focus:ring-primary-container"></td>
+        <td class="py-space-md px-space-md">
+          <div class="flex items-center gap-space-sm">
+            <div class="w-10 h-10 rounded-full ${risky ? "bg-error-container/40 text-error" : "bg-surface-container-highest text-on-surface"} flex items-center justify-center text-xs font-bold font-label-code shrink-0">${esc(initials)}</div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <a href="${fileLink(s.campus_id)}" class="text-sm font-bold text-on-surface hover:text-primary">${esc(s.campus_id)}</a>
+                ${s.flags.map((f) => `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${FLAG_STYLE[f.code][1]}" title="${esc(f.label)}">${FLAG_STYLE[f.code][0]}</span>`).join("")}
+              </div>
+              <div class="text-xs text-on-surface-variant">${esc(s.class_level)} · ${esc(s.major === "Computer Science" ? "CS" : "IS")} · <span class="text-outline">${esc(s.track)}</span></div>
+            </div>
+          </div>
+        </td>
+        <td class="py-space-md px-space-md">
+          <span class="px-2 py-0.5 rounded text-xs font-bold ${s.gpa == null ? "bg-surface-container-highest text-on-surface-variant" : s.academic_standing !== "Good Standing" ? "bg-error-container/40 text-error" : s.gpa >= 3.5 ? "bg-primary-container text-on-primary" : "bg-surface-container-highest text-on-surface"}">${s.gpa == null ? "First term" : `${s.gpa.toFixed(2)} GPA`}</span>
+          <div class="text-[11px] mt-1 ${s.academic_standing === "Good Standing" ? "text-outline" : "text-error font-semibold"}">${esc(s.academic_standing)}</div>
+        </td>
+        <td class="py-space-md px-space-md">
+          <div class="text-xs font-semibold text-on-surface">${s.credits_earned} credits · ${s.remaining_required_count ? `${s.remaining_required_count} required left` : "requirements on track"}</div>
+          <div class="text-[11px] text-outline mt-0.5">${s.next_required.length ? `Open next term: ${esc(s.next_required.slice(0, 3).join(", "))}${s.next_required.length > 3 ? "…" : ""}` : `Expected grad ${esc(s.expected_graduation_term)}`}</div>
+        </td>
+        <td class="py-space-md px-space-md">
+          <div class="text-xs text-on-surface">${s.top_career ? `${esc(s.top_career)} <span class="text-outline">(${s.top_career_score})</span>` : `<span class="text-outline">No graded coursework</span>`}</div>
+          <div class="text-[11px] text-outline">${s.internship_count} internship${s.internship_count === 1 ? "" : "s"} · ${s.credential_count} cert${s.credential_count === 1 ? "" : "s"}</div>
+        </td>
+        <td class="py-space-md px-space-md"><div class="flex flex-col gap-0.5">${followUp(s)}</div></td>
+        <td class="py-space-md px-space-md text-right no-print">
+          <div class="flex items-center justify-end gap-1">
+            <a href="${fileLink(s.campus_id)}" class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary" title="Open student file"><span class="material-symbols-outlined text-lg">description</span></a>
+            <button data-meet="${esc(s.campus_id)}" data-reason="${REASON_FOR_FLAG[(s.flags[0] || {}).code] || "course_planning"}" ${requests.has(s.campus_id) || appointments.has(s.campus_id) ? "disabled" : ""} class="p-1.5 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-primary disabled:opacity-30" title="Request a meeting"><span class="material-symbols-outlined text-lg">event</span></button>
+            <button data-note="${esc(s.campus_id)}" class="p-1.5 rounded hover:bg-surface-container-high ${s.reviewed_at ? "text-emerald-400" : "text-on-surface-variant"} hover:text-primary" title="${s.reviewed_at ? "Edit review note" : "Mark reviewed with a note"}"><span class="material-symbols-outlined text-lg">edit_note</span></button>
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  function renderPager(total) {
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    const start = total ? (state.page - 1) * state.pageSize + 1 : 0;
+    $("page-info").textContent = `Showing ${start}–${Math.min(total, state.page * state.pageSize)} of ${total.toLocaleString()} students`;
+    const nums = [...new Set([1, state.page - 1, state.page, state.page + 1, pages])].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+    const btn = (label, page, on = false, disabled = false) => `<button type="button" data-page="${page}" ${disabled ? "disabled" : ""} class="px-2.5 py-1 rounded ${on ? "bg-primary-container text-on-primary font-bold" : "bg-surface-container-high text-on-surface hover:bg-surface-container-highest"} disabled:opacity-40">${label}</button>`;
+    $("pager").innerHTML = btn("Previous", state.page - 1, false, state.page <= 1) +
+      nums.map((n, i) => (i && n - nums[i - 1] > 1 ? `<span class="px-1">…</span>` : "") + btn(n, n, n === state.page)).join("") +
+      btn("Next", state.page + 1, false, state.page >= pages);
+    $("pager").querySelectorAll("[data-page]").forEach((b) => b.addEventListener("click", () => { state.page = +b.dataset.page; load(); }));
+  }
+
+  function updateSelection() {
+    $("batch-label").textContent = `Request meetings (${selected.size})`;
+    $("batch-btn").disabled = !selected.size;
+    const pageIds = lastRows.map((s) => s.campus_id);
+    $("select-all").checked = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+  }
+
+  async function load() {
+    try {
+      const r = await api(`/api/caseload?${query()}`);
+      if (!state.facetsReady) { renderSelects(r.facets); state.facetsReady = true; renderFlagHelp(r.facets); }
+      lastRows = r.students;
+      $("count").textContent = `${r.total.toLocaleString()} match${r.total === 1 ? "" : "es"}`;
+      $("rows").innerHTML = r.students.map(row).join("") || `<tr><td colspan="7" class="p-space-md text-on-surface-variant">No students match these filters.</td></tr>`;
+      $("rows").querySelectorAll("[data-select]").forEach((c) => c.addEventListener("change", () => { c.checked ? selected.add(c.dataset.select) : selected.delete(c.dataset.select); updateSelection(); }));
+      $("rows").querySelectorAll("[data-meet]").forEach((b) => b.addEventListener("click", () => openModal([b.dataset.meet], b.dataset.reason)));
+      $("rows").querySelectorAll("[data-note]").forEach((b) => b.addEventListener("click", () => editNote(b.dataset.note)));
+      renderPager(r.total); updateSelection();
+    } catch (err) {
+      $("rows").innerHTML = `<tr><td colspan="7" class="p-space-md text-error">${esc(err.message)}</td></tr>`;
+    }
+  }
+
+  async function editNote(cid) {
+    const current = lastRows.find((s) => s.campus_id === cid);
+    const note = prompt(`Review note for ${cid} (advisors only). Leave empty to just mark reviewed; type "clear" to remove the review.`, current?.review_note || "");
+    if (note === null) return;
+    try {
+      if (note.trim().toLowerCase() === "clear") await api(`/api/caseload/${cid}/review`, { method: "DELETE" });
+      else await api(`/api/caseload/${cid}/review`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note }) });
+      toast(note.trim().toLowerCase() === "clear" ? `Review cleared for ${cid}.` : `${cid} marked reviewed.`);
+      await Promise.all([refreshFollowUps(), load()]);
+    } catch (err) { toast(err.message); }
+  }
+
+  // ---------------- Meeting requests (single + batch) ----------------
+  let modalTargets = [];
+  function openModal(ids, reason = "degree_check") {
+    modalTargets = ids.filter((id) => !requests.has(id) && !appointments.has(id));
+    const skipped = ids.length - modalTargets.length;
+    $("modal-title").textContent = modalTargets.length === 1 ? `Request a meeting with ${modalTargets[0]}` : `Request meetings with ${modalTargets.length} students`;
+    $("modal-sub").textContent = `They'll see the request on their Appointments page and can book or dismiss it.${skipped ? ` ${skipped} selected student${skipped === 1 ? " already has" : "s already have"} a request or appointment and will be skipped.` : ""}`;
+    $("modal-reason").value = reason;
+    $("modal-message").value = "";
+    $("modal-result").classList.add("hidden");
+    $("modal-submit").disabled = !modalTargets.length;
+    $("modal").classList.remove("hidden");
+  }
+  function closeModal() { $("modal").classList.add("hidden"); }
+
+  async function sendRequests(e) {
+    e.preventDefault();
+    $("modal-submit").disabled = true;
+    const reason = $("modal-reason").value, message = $("modal-message").value.trim();
+    const results = await Promise.allSettled(modalTargets.map((campus_id) =>
+      api("/api/meeting-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campus_id, reason, message }) })));
+    const ok = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.length - ok;
+    toast(`Sent ${ok} meeting request${ok === 1 ? "" : "s"}${failed ? ` · ${failed} failed` : ""}.`);
+    for (const id of modalTargets) selected.delete(id);
+    closeModal();
+    await Promise.all([refreshFollowUps(), refreshSummary()]);
+    load();
+  }
+
+  // ---------------- CSV export (current filters, all pages) ----------------
+  async function exportCsv() {
+    $("csv-label").textContent = "Exporting…";
+    try {
+      const all = [];
+      for (let page = 1; ; page++) {
+        const r = await api(`/api/caseload?${query({ page, page_size: 100 })}`);
+        all.push(...r.students);
+        if (all.length >= r.total || !r.students.length) break;
+      }
+      const cols = ["campus_id", "major", "track", "class_level", "gpa", "academic_standing", "credits_earned", "remaining_required_count", "next_required", "expected_graduation_term", "internship_count", "credential_count", "top_career", "top_career_score", "flags", "reviewed_at", "review_note"];
+      const cell = (v) => { const s = Array.isArray(v) ? v.join("; ") : v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+      const csv = [cols.join(","), ...all.map((s) => cols.map((c) => cell(c === "flags" ? s.flags.map((f) => f.code) : s[c])).join(","))].join("\n");
+      const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+      const a = Object.assign(document.createElement("a"), { href: url, download: `student-roster-${new Date().toISOString().slice(0, 10)}.csv` });
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast(`Exported ${all.length.toLocaleString()} students.`);
+    } catch (err) { toast(err.message); }
+    finally { $("csv-label").textContent = "Export CSV"; }
+  }
+
+  // ---------------- Right column ----------------
+  async function renderWatchlist() {
+    try {
+      const r = await api("/api/caseload?reviewed=false&flagged=true&sort=flags&page_size=6");
+      const urgent = r.students.filter((s) => s.flags.some((f) => f.code === "academic_standing" || f.code === "graduation_risk"));
+      const why = (s) => {
+        const bits = [];
+        if (s.academic_standing !== "Good Standing") bits.push(`${s.academic_standing} with a ${s.gpa?.toFixed(2) ?? "—"} GPA`);
+        if (s.flags.some((f) => f.code === "graduation_risk")) bits.push(`${s.remaining_required_count} required courses can't all fit before ${s.expected_graduation_term}`);
+        if (s.internship_count === 0 && ["Junior", "Senior"].includes(s.class_level)) bits.push("no internship yet");
+        return bits.join("; ") + ".";
+      };
+      $("watchlist").innerHTML = `
+        <div class="flex items-center justify-between pb-space-sm mb-space-sm">
+          <div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-error">priority_high</span><h3 class="text-sm font-bold text-on-surface">Urgent Watchlist</h3></div>
+          <span class="px-2 py-0.5 rounded-full bg-error-container/40 text-error text-[10px] font-bold">${urgent.length} shown</span>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-space-md">Unreviewed students on academic warning or probation, or whose required courses won't fit before expected graduation.</p>
+        ${urgent.map((s) => {
+          const req = requests.get(s.campus_id), appt = appointments.get(s.campus_id);
+          return `
+          <div class="p-space-sm rounded-lg bg-surface-container mb-space-sm border border-outline-variant/20">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full ${s.academic_standing === "Academic Probation" ? "bg-error" : "bg-primary-container"}"></span>
+                <a href="${fileLink(s.campus_id)}" class="text-sm font-bold text-on-surface hover:text-primary">${esc(s.campus_id)}</a></div>
+              <span class="text-[10px] ${s.academic_standing === "Good Standing" ? "text-primary" : "text-error"} font-bold">${esc(s.academic_standing === "Good Standing" ? "Graduation risk" : s.academic_standing)}</span>
+            </div>
+            <p class="text-xs text-on-surface-variant mt-1">${esc(s.class_level)} · ${esc(why(s))}</p>
+            <div class="mt-2 flex items-center justify-between pt-1">
+              <span class="text-[11px] text-outline">${appt ? `Appt ${esc(fmtDate(appt.start, true))}` : req ? "Meeting requested" : "Action: reach out"}</span>
+              ${appt || req ? "" : `<button data-watch-meet="${esc(s.campus_id)}" class="px-2 py-1 rounded bg-primary-container text-on-primary text-[11px] font-bold hover:bg-secondary">Request meeting</button>`}
+            </div>
+          </div>`;
+        }).join("") || `<p class="text-xs text-emerald-400">No urgent unreviewed students.</p>`}`;
+      $("watchlist").querySelectorAll("[data-watch-meet]").forEach((b) => b.addEventListener("click", () => openModal([b.dataset.watchMeet], "degree_check")));
+    } catch (err) {
+      $("watchlist").innerHTML = `<div class="text-error text-sm">${esc(err.message)}</div>`;
+    }
+  }
+
+  function renderFlagHelp(facets) {
+    $("flag-help").innerHTML = `
+      <div class="flex items-center gap-space-xs mb-space-sm"><span class="material-symbols-outlined text-primary-container">policy</span><h4 class="text-sm font-bold text-on-surface">How flags are calculated</h4></div>
+      <ul class="flex flex-col gap-2 text-xs text-on-surface-variant">${facets.flags.map((f) => `
+        <li class="flex items-start gap-2"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${FLAG_STYLE[f.code][1]}">${FLAG_STYLE[f.code][0]}</span><span>${esc(f.label)}.</span></li>`).join("")}
+      </ul>
+      <p class="mt-space-md pt-space-xs text-[11px] text-outline border-t border-outline-variant/20">Graduation risk comes from a degree-only course plan that respects prerequisites and when courses are offered. Standing, GPA, and experiences come from the dataset. These are app flags, not official university holds.</p>`;
+  }
+
+  async function refreshFollowUps() {
+    const [reqs, appts] = await Promise.all([api("/api/meeting-requests"), api("/api/appointments")]);
+    requests = new Map(reqs.requests.map((r) => [r.campus_id, r]));
+    appointments = new Map();
+    for (const a of appts.appointments) if (!appointments.has(a.campus_id)) appointments.set(a.campus_id, a);
+  }
+
+  async function refreshSummary() {
+    dash = await api("/api/advisor-dashboard");
+    AdvisorShell.setAdvisor({ name: dash.advisor, caseload: dash.total_students, upcoming: dash.upcoming_appointments });
+    renderStats();
+    renderWatchlist();
+  }
+
+  // ---------------- Wiring ----------------
+  let timer;
+  $("q").addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => { state.q = $("q").value.trim(); state.page = 1; load(); }, 250); });
+  $("sort").addEventListener("change", () => { state.sort = $("sort").value; state.page = 1; load(); });
+  $("select-all").addEventListener("change", () => { for (const s of lastRows) $("select-all").checked ? selected.add(s.campus_id) : selected.delete(s.campus_id); load(); });
+  $("batch-btn").addEventListener("click", () => {
+    const first = lastRows.find((s) => selected.has(s.campus_id));
+    openModal([...selected], REASON_FOR_FLAG[(first?.flags[0] || {}).code] || "course_planning");
+  });
+  $("csv-btn").addEventListener("click", exportCsv);
+  $("modal-form").addEventListener("submit", sendRequests);
+  $("modal-close").addEventListener("click", closeModal);
+  $("modal-cancel").addEventListener("click", closeModal);
+  $("modal").addEventListener("click", (e) => { if (e.target === $("modal")) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+  (async () => {
+    $("q").value = state.q;
+    try {
+      $("stats").innerHTML = `<div class="text-sm text-on-surface-variant">Building caseload analytics (first load after a restart takes a few seconds)…</div>`;
+      await refreshFollowUps();
+      await Promise.all([refreshSummary(), load()]);
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  })();
+})();
+</script>
+</body></html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Plan Review Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+    <div>
+      <div class="flex flex-wrap items-center gap-space-sm mb-1.5">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span><span id="term">Spring 2027</span> registration planning</span>
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Registration Plan <span class="text-primary-container">Review Queue</span></h1>
+      <p class="text-body-md text-on-surface-variant max-w-3xl mt-1">Review the course plans students submit. Each plan is checked against the catalog — prerequisites, when courses are offered, and credit load — before you see it. <span class="text-on-surface font-medium" id="notice"></span></p>
+    </div>
+    <div class="flex items-center gap-space-sm flex-shrink-0 no-print">
+      <button id="batch" class="flex items-center gap-space-sm px-5 py-3 rounded-xl bg-primary-container text-on-primary text-sm font-bold shadow-[0_0_14px_rgba(255,179,0,0.3)] hover:bg-secondary transition-all disabled:opacity-40" type="button">
+        <span class="w-6 h-6 rounded-full bg-on-primary/20 flex items-center justify-center"><span class="material-symbols-outlined text-sm font-bold">done_all</span></span>
+        <span id="batch-label">Approve ready plans</span>
+      </button>
+      <button id="refresh" class="p-3 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high border border-outline-variant/30" title="Refresh" type="button"><span class="material-symbols-outlined text-lg">sync</span></button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md" id="stats"></div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+    <div class="xl:col-span-8 flex flex-col gap-space-md min-w-0">
+      <div class="bg-surface-container-low border border-surface-container p-space-sm rounded-xl shadow-xl flex flex-wrap items-center gap-1.5" id="filters"></div>
+      <div class="flex flex-col gap-space-md" id="cards"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+    </div>
+    <aside class="xl:col-span-4 flex flex-col gap-space-md">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="decided"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl">
+        <div class="flex items-center gap-space-xs mb-space-sm"><span class="material-symbols-outlined text-primary-container">policy</span><h4 class="text-sm font-bold text-on-surface">How plans are checked</h4></div>
+        <ul class="flex flex-col gap-2 text-xs text-on-surface-variant">
+          <li class="flex gap-2"><span class="material-symbols-outlined text-emerald-400 text-sm">check_circle</span><span><strong class="text-on-surface">Prerequisites</strong> must be met by completed courses or ones the student is taking now (including transfer credit implied by later courses).</span></li>
+          <li class="flex gap-2"><span class="material-symbols-outlined text-error text-sm">block</span><span><strong class="text-on-surface">Blocked</strong>: already completed, in progress, missing a prerequisite, or not in the catalog. Blocked plans can't be approved.</span></li>
+          <li class="flex gap-2"><span class="material-symbols-outlined text-primary text-sm">warning</span><span><strong class="text-on-surface">Warnings</strong>: not usually offered in Spring, or a credit load under 12 or over 18.</span></li>
+          <li class="flex gap-2"><span class="material-symbols-outlined text-secondary text-sm">event</span><span><strong class="text-on-surface">Meeting first</strong>: academic warning or probation, or required courses that can't all fit before expected graduation. These never batch-approve.</span></li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] flex items-center justify-center p-space-md">
+  <form id="modal-form" class="bg-surface-container-low border border-outline-variant/40 rounded-xl max-w-lg w-full p-space-lg shadow-2xl flex flex-col gap-space-md">
+    <div class="flex items-center justify-between">
+      <h3 class="text-title-lg font-bold text-on-surface" id="modal-title">Decision</h3>
+      <button type="button" id="modal-close" class="text-on-surface-variant hover:text-on-surface" aria-label="Close"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <label class="flex flex-col gap-1 text-xs text-on-surface-variant"><span id="modal-label">Note to the student</span>
+      <textarea id="modal-note" maxlength="500" rows="3" class="bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary resize-none"></textarea>
+    </label>
+    <div class="flex justify-end gap-2">
+      <button type="button" id="modal-cancel" class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold border border-outline-variant/30">Cancel</button>
+      <button type="submit" id="modal-submit" class="px-space-md py-2 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary">Send</button>
+    </div>
+  </form>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/advisor-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = AdvisorShell.mount({ active: "plans" });
+  if (!session) return;
+  const { toast, withApi } = AdvisorShell;
+  const CAT = {
+    ready: ["Ready to approve", "bg-emerald-500/10 text-emerald-400", "bg-emerald-400", "task_alt"],
+    prereq: ["Needs prerequisite check", "bg-error-container/30 text-error", "bg-error", "rule_folder"],
+    meeting: ["Meeting first", "bg-secondary/15 text-secondary", "bg-secondary", "person_alert"],
+  };
+  const STATUS_ICON = { ok: ["check_circle", "text-emerald-400"], warning: ["warning", "text-primary"], blocked: ["block", "text-error"] };
+  let queue = null, filter = "submitted", modalAction = null;
+
+  function renderStats() {
+    const c = queue.counts;
+    const stat = (label, icon, value, sub, bar, tone = "text-on-surface") => `
+      <div class="bg-surface-container-low border border-surface-container p-space-lg rounded-xl shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 ${bar}"></div>
+        <div class="flex items-start justify-between">
+          <div><span class="text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">${label}</span>
+            <div class="flex items-baseline gap-2 mt-1"><span class="text-display-lg-mobile font-extrabold ${tone}">${value}</span></div></div>
+          <div class="w-12 h-12 rounded-xl bg-surface-container flex items-center justify-center text-primary"><span class="material-symbols-outlined text-2xl">${icon}</span></div>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-3">${sub}</p>
+      </div>`;
+    $("stats").innerHTML = [
+      stat("Awaiting review", "pending_actions", c.submitted, `${c.approved} approved · ${c.changes_requested} sent back`, "bg-surface-container-highest"),
+      stat("Ready to approve", "task_alt", c.ready, "Every course passes the catalog checks", "bg-emerald-400", "text-emerald-400"),
+      stat("Needs prerequisite check", "rule_folder", c.prereq, "A course is blocked or has a warning", "bg-error", "text-error"),
+      stat("Meeting first", "person_alert", c.meeting, "Standing or graduation-timeline concerns", "bg-secondary", "text-secondary"),
+    ].join("");
+    $("batch-label").textContent = `Approve ${c.ready} ready plan${c.ready === 1 ? "" : "s"}`;
+    $("batch").disabled = !c.ready;
+  }
+
+  function renderFilters() {
+    const c = queue.counts;
+    const pills = [["submitted", `All awaiting (${c.submitted})`], ["ready", `Ready (${c.ready})`], ["prereq", `Prerequisite check (${c.prereq})`], ["meeting", `Meeting first (${c.meeting})`]];
+    $("filters").innerHTML = pills.map(([key, label]) => `<button data-filter="${key}" class="px-3.5 py-1.5 rounded-lg text-xs ${filter === key ? "bg-primary-container text-on-primary font-bold" : "bg-surface-container text-on-surface-variant hover:text-on-surface font-medium"}">${label}</button>`).join("");
+    $("filters").querySelectorAll("[data-filter]").forEach((b) => b.addEventListener("click", () => { filter = b.dataset.filter; renderFilters(); renderCards(); }));
+  }
+
+  function card(p) {
+    const v = p.validation, cat = CAT[v.category];
+    return `
+      <article class="bg-surface-container-low border border-surface-container rounded-xl p-space-lg shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 ${cat[2]}"></div>
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-space-md pb-space-md">
+          <div class="flex items-start gap-space-md">
+            <div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-xs font-bold font-label-code text-on-surface shrink-0">${esc(p.campus_id.slice(-2))}</div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <a href="${withApi(`student-file.html#${p.campus_id}`)}" class="text-title-lg font-bold text-on-surface hover:text-primary">${esc(p.campus_id)}</a>
+                <span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${cat[1]}">${cat[0]}</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-space-sm gap-y-1 mt-1 text-xs text-on-surface-variant">
+                <span class="font-semibold text-on-surface">${esc(p.class_level)}</span><span>•</span><span>${esc(p.major)} (${esc(p.track)})</span><span>•</span>
+                <span class="${p.academic_standing === "Good Standing" ? "" : "text-error font-semibold"}">${p.gpa == null ? "First term" : `${p.gpa.toFixed(2)} GPA`} · ${esc(p.academic_standing)}</span><span>•</span>
+                <span>${p.credits_earned}/${p.credits_required} credits</span>
+              </div>
+            </div>
+          </div>
+          <div class="text-right shrink-0 text-[11px] text-on-surface-variant">Submitted ${esc(new Date(p.submitted_at).toLocaleString())}</div>
+        </div>
+        ${v.meeting_reasons.length ? `<div class="p-space-sm rounded-lg bg-secondary/10 border border-secondary/30 mb-space-md text-xs text-on-surface flex items-start gap-2"><span class="material-symbols-outlined text-secondary text-base">info</span><span>${v.meeting_reasons.map(esc).join(" · ")}</span></div>` : ""}
+        <div class="p-space-md rounded-xl bg-surface-container mb-space-md">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <span class="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold flex items-center gap-1.5"><span class="material-symbols-outlined text-sm text-primary">shopping_bag</span>${esc(v.term)} plan · ${v.total_credits} credits</span>
+            <span class="text-[11px] font-bold ${v.blocked ? "text-error" : "text-emerald-400"}">${v.blocked ? `${v.courses.filter((c) => c.status === "blocked").length} blocked` : "All prerequisites met"}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">${v.courses.map((c) => `
+            <div class="p-2.5 rounded-lg bg-surface-container-low border ${c.status === "blocked" ? "border-error/50" : "border-outline-variant/20"}">
+              <div class="flex items-center justify-between text-xs font-bold ${c.status === "blocked" ? "text-error" : "text-on-surface"}"><span>${esc(c.course_id)}</span><span class="material-symbols-outlined text-sm ${STATUS_ICON[c.status][1]}">${STATUS_ICON[c.status][0]}</span></div>
+              <p class="text-[11px] text-on-surface-variant truncate mt-0.5" title="${esc(c.title)}">${esc(c.title)} · ${c.credits} cr</p>
+              <span class="text-[10px] ${c.status === "blocked" ? "text-error font-bold" : "text-on-surface-variant"}">${esc(c.notes.join(" · "))}</span>
+            </div>`).join("")}</div>
+          ${v.issues.length || v.missing_required.length ? `<div class="mt-2 text-[11px] text-on-surface-variant">${v.issues.map(esc).join(" · ")}${v.missing_required.length ? `${v.issues.length ? " · " : ""}Open requirements not planned: <span class="text-primary">${esc(v.missing_required.join(", "))}</span>` : ""}</div>` : ""}
+        </div>
+        ${p.note ? `<p class="text-xs text-on-surface mb-space-md">Student note: “${esc(p.note)}”</p>` : ""}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+          <a href="${withApi(`student-file.html#${p.campus_id}`)}" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-1.5 self-start"><span class="material-symbols-outlined text-sm">visibility</span>Open student file</a>
+          <div class="flex flex-wrap items-center gap-space-xs">
+            ${v.category === "meeting" ? `<button data-meet="${esc(p.campus_id)}" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">event</span>Request meeting</button>` : ""}
+            <button data-changes="${p.id}" class="px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">edit_note</span>Request changes</button>
+            <button data-approve="${p.id}" ${v.blocked ? 'disabled title="Blocked plans can’t be approved — request changes"' : ""} class="px-5 py-2 rounded-lg bg-primary-container hover:bg-secondary text-on-primary text-xs font-bold flex items-center gap-2 disabled:opacity-40"><span class="material-symbols-outlined text-base">check_circle</span>Approve plan</button>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function renderCards() {
+    const list = queue.plans.filter((p) => p.status === "submitted" && (filter === "submitted" || p.validation.category === filter));
+    $("cards").innerHTML = list.map(card).join("") || `<div class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg text-sm text-on-surface-variant">No plans waiting here. Students submit plans from their <strong class="text-on-surface">Spring Plan</strong> page.</div>`;
+    $("cards").querySelectorAll("[data-approve]").forEach((b) => b.addEventListener("click", () => openModal("approve", +b.dataset.approve)));
+    $("cards").querySelectorAll("[data-changes]").forEach((b) => b.addEventListener("click", () => openModal("changes", +b.dataset.changes)));
+    $("cards").querySelectorAll("[data-meet]").forEach((b) => b.addEventListener("click", () => requestMeeting(b.dataset.meet)));
+  }
+
+  function renderDecided() {
+    const decided = queue.plans.filter((p) => p.status !== "submitted").sort((a, b) => new Date(b.decided_at) - new Date(a.decided_at));
+    $("decided").innerHTML = `
+      <div class="flex items-center justify-between pb-space-sm"><h3 class="text-sm font-bold text-on-surface">Recent decisions</h3><span class="text-[11px] text-on-surface-variant">${decided.length}</span></div>
+      ${decided.slice(0, 8).map((p) => `
+        <div class="flex items-center justify-between gap-2 py-1.5 border-b border-outline-variant/20 last:border-0 text-xs">
+          <a href="${withApi(`student-file.html#${p.campus_id}`)}" class="text-on-surface font-semibold hover:text-primary">${esc(p.campus_id)}</a>
+          <span class="${p.status === "approved" ? "text-emerald-400" : "text-error"} font-semibold">${p.status === "approved" ? "Approved" : "Changes requested"}</span>
+        </div>`).join("") || `<p class="text-xs text-on-surface-variant">No decisions yet.</p>`}`;
+  }
+
+  function openModal(action, id) {
+    modalAction = { action, id };
+    $("modal-title").textContent = action === "approve" ? "Approve plan" : "Request changes";
+    $("modal-label").textContent = action === "approve" ? "Optional note to the student" : "What should the student change? (required)";
+    $("modal-note").value = ""; $("modal-note").required = action !== "approve";
+    $("modal-submit").textContent = action === "approve" ? "Approve" : "Send back";
+    $("modal").classList.remove("hidden"); $("modal-note").focus();
+  }
+  function closeModal() { $("modal").classList.add("hidden"); }
+
+  async function decide(e) {
+    e.preventDefault();
+    const { action, id } = modalAction;
+    try {
+      await api(`/api/plans/${id}/${action === "approve" ? "approve" : "request-changes"}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ note: $("modal-note").value }) });
+      toast(action === "approve" ? "Plan approved — the student can see it now." : "Sent back to the student with your note.");
+      closeModal(); await load();
+    } catch (err) { toast(err.message); }
+  }
+
+  async function requestMeeting(cid) {
+    const message = prompt(`Ask ${cid} to book a degree progress check before you approve their plan.\nOptional message:`, "Let's go over your Spring plan before I approve it.");
+    if (message === null) return;
+    try {
+      await api("/api/meeting-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campus_id: cid, reason: "degree_check", message }) });
+      toast(`Meeting requested — ${cid} will see it on their Appointments page.`);
+    } catch (err) { toast(err.message); }
+  }
+
+  async function batchApprove() {
+    const n = queue.counts.ready;
+    if (!confirm(`Approve ${n} plan${n === 1 ? "" : "s"} that pass every catalog check and don't need a meeting? Approvals are recorded in this app only.`)) return;
+    try {
+      const r = await api("/api/plans-approve-ready", { method: "POST" });
+      toast(`Approved ${r.approved.length} plan${r.approved.length === 1 ? "" : "s"}.`);
+      await load();
+    } catch (err) { toast(err.message); }
+  }
+
+  async function load() {
+    try {
+      const [q, dash] = await Promise.all([api("/api/plans"), api("/api/advisor-dashboard")]);
+      queue = q;
+      AdvisorShell.setAdvisor({ name: dash.advisor, caseload: dash.total_students, upcoming: dash.upcoming_appointments });
+      $("term").textContent = dash.next_term;
+      $("notice").textContent = q.notice;
+      renderStats(); renderFilters(); renderCards(); renderDecided();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("batch").addEventListener("click", batchApprove);
+  $("refresh").addEventListener("click", load);
+  $("modal-form").addEventListener("submit", decide);
+  $("modal-close").addEventListener("click", closeModal);
+  $("modal-cancel").addEventListener("click", closeModal);
+  $("modal").addEventListener("click", (e) => { if (e.target === $("modal")) closeModal(); });
+  load();
+})();
+</script>
+</body></html>

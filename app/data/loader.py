@@ -45,6 +45,9 @@ class DataStore:
     experiences: pd.DataFrame
     employment: pd.DataFrame
     catalog: dict[str, Course] = field(default_factory=dict)
+    # Every skill any alumni role listed, and every skill any course teaches (same vocabulary).
+    role_skills: frozenset[str] = frozenset()
+    all_skills: frozenset[str] = frozenset()
     _transcripts_by_person: dict[str, pd.DataFrame] = field(default_factory=dict, repr=False)
     _experiences_by_person: dict[str, pd.DataFrame] = field(default_factory=dict, repr=False)
     _employment_by_person: dict[str, pd.DataFrame] = field(default_factory=dict, repr=False)
@@ -68,6 +71,8 @@ class DataStore:
             )
             for row in self.courses.itertuples(index=False)
         }
+        self.role_skills = frozenset(s for tags in self.employment["role_skill_tags"] for s in split_pipe(tags))
+        self.all_skills = self.role_skills | {s for c in self.catalog.values() for s in c.skills}
         self._transcripts_by_person = dict(tuple(self.transcripts.groupby("campus_id")))
         self._experiences_by_person = dict(tuple(self.experiences.groupby("campus_id")))
         self._employment_by_person = dict(tuple(self.employment.groupby("campus_id")))

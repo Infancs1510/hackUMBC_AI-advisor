@@ -25,6 +25,20 @@ class Settings(BaseSettings):
     backboard_assistant_prefix: str = "hackumbc-advisor"
     backboard_timeout_seconds: float = 20.0
 
+    # Simple demo login. Students sign in with their campus_id and the shared demo password;
+    # advisors with the advisor username/password. Tokens are HMAC-signed with auth_secret.
+    # If auth_secret is empty, a random one is generated at startup (sessions end on restart).
+    auth_secret: str | None = None
+    auth_token_ttl_minutes: int = 8 * 60
+    student_demo_password: str = "umbc-demo"
+    advisor_username: str = "advisor"
+    advisor_password: str = "advisor-demo"
+
+    # App-created data (appointments) lives here, separate from the read-only dataset.
+    app_db_path: Path = BASE_DIR / "app_data" / "app.db"
+    advisor_display_name: str = "Academic Advisor"
+    advising_timezone: str = "America/New_York"
+
     # Comma-separated list of allowed CORS origins.
     frontend_origin: str = "http://localhost:3000"
 

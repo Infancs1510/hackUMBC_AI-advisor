@@ -79,6 +79,15 @@ class CourseRecommendation(BaseModel):
     skills_gained: list[str]
     status: str = Field(description="eligible | eligible_after_current_term | needs_prerequisites")
     missing_prerequisites: list[str]
+    score_gain: float = Field(description="Points this course alone would add to the career match score.")
+
+
+class SkillCoverage(BaseModel):
+    skill: str
+    share: float = Field(description="Share of entry-level alumni roles in this career that listed the skill.")
+    is_core: bool
+    status: str = Field(description="have | in_progress | missing")
+    courses: list[str] = Field(description="Catalog courses not yet taken that teach this skill.")
 
 
 class PrerequisiteStep(BaseModel):
@@ -99,6 +108,7 @@ class Pathway(BaseModel):
         description="Courses to take first when recommended courses still need prerequisites."
     )
     skills_not_covered_by_catalog: list[str]
+    skill_coverage: list[SkillCoverage]
     alumni_outcomes: AlumniOutcomes
 
 

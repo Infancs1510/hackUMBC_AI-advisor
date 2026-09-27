@@ -27,4 +27,4 @@ def get_career(
     name = resolve_career(career, profiles)
     if name is None:
         raise UnknownCareerError(career)
-    return career_detail(profiles[name], store.employment, store.alumni)
+    return career_detail(profiles[name], store.employment, store.alumni, store.experiences)

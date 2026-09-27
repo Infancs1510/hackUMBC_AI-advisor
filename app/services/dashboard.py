@@ -48,7 +48,7 @@ def build_dashboard(
             store.catalog,
             completed,
             in_progress,
-            alumni_outcomes(store.alumni, selected),
+            alumni_outcomes(store.alumni, selected, store.experiences),
         )
         salary = career_salary(store.employment, selected)
 

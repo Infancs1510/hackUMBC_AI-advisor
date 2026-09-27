@@ -22,6 +22,9 @@ ASSISTANT_SYSTEM_PROMPT = (
 )
 
 
+CAREER_GOAL_KIND = "career_goal"
+
+
 class BackboardError(RuntimeError):
     pass
 
@@ -112,6 +115,37 @@ class BackboardMemory:
             return []
         response = await self._request("GET", f"/assistants/{assistant_id}/memories")
         return self._to_items(response.json())
+
+    async def _raw_memories(self, campus_id: str) -> tuple[str | None, list[dict]]:
+        assistant_id = await self._assistant_id(campus_id, create=False)
+        if assistant_id is None:
+            return None, []
+        response = await self._request("GET", f"/assistants/{assistant_id}/memories")
+        return assistant_id, response.json().get("memories", [])
+
+    async def get_career_goal(self, campus_id: str) -> str | None:
+        _, memories = await self._raw_memories(campus_id)
+        for memory in memories:
+            metadata = memory.get("metadata") or {}
+            if metadata.get("kind") == CAREER_GOAL_KIND and metadata.get("career"):
+                return metadata["career"]
+        return None
+
+    async def set_career_goal(self, campus_id: str, career: str) -> None:
+        """Replace any saved career goal with this one (a goal is a preference, not an academic fact)."""
+        assistant_id, memories = await self._raw_memories(campus_id)
+        for memory in memories:
+            if (memory.get("metadata") or {}).get("kind") == CAREER_GOAL_KIND:
+                await self._request("DELETE", f"/assistants/{assistant_id}/memories/{memory['id']}")
+        assistant_id = await self._assistant_id(campus_id, create=True)
+        await self._request(
+            "POST",
+            f"/assistants/{assistant_id}/memories",
+            json={
+                "content": f"Primary career goal: {career}.",
+                "metadata": {"category": "goal", "kind": CAREER_GOAL_KIND, "career": career, "source": "career_pathways"},
+            },
+        )
 
     async def add(self, campus_id: str, item: MemoryItem) -> None:
         assistant_id = await self._assistant_id(campus_id, create=True)

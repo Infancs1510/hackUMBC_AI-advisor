@@ -1,0 +1,304 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Market Insights</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Heading -->
+  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+    <div class="flex flex-col max-w-3xl">
+      <div class="flex flex-wrap items-center gap-space-sm mb-space-xs">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary-container/15 text-primary font-label-code text-[11px] font-bold border border-primary-container/30">
+          <span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>ALUMNI OUTCOME DATA
+        </span>
+        <span class="inline-flex items-center gap-1 text-on-surface-variant text-xs" id="scope-line">
+          <span class="material-symbols-outlined text-[16px] text-secondary">database</span>Loading…
+        </span>
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Market Insights &amp; <span class="text-primary-container">Workforce Intelligence</span></h1>
+      <p class="text-body-md text-on-surface-variant mt-space-xs leading-relaxed">What UMBC alumni were hired into — roles, skills, industries, and nominal starting pay — benchmarked against your coursework. Built from the HackUMBC alumni dataset, not live job postings.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-space-sm shrink-0 no-print">
+      <div class="inline-flex rounded-lg border border-outline-variant/40 overflow-hidden text-xs" role="group" aria-label="Filter by alumni major" id="major-filter">
+        <button type="button" data-major="" class="px-3 py-2">All majors</button>
+        <button type="button" data-major="Computer Science" class="px-3 py-2 border-l border-outline-variant/40">CS alumni</button>
+        <button type="button" data-major="Information Systems" class="px-3 py-2 border-l border-outline-variant/40">IS alumni</button>
+      </div>
+      <button class="inline-flex items-center gap-2 px-space-md py-2 rounded-lg bg-primary-container text-on-primary hover:bg-secondary transition-all text-xs font-bold" onclick="window.print()" type="button">
+        <span class="material-symbols-outlined text-[18px]">download</span>Export report (PDF)
+      </button>
+    </div>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md" id="stats">
+    <div class="text-sm text-on-surface-variant">Loading…</div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <!-- Left -->
+    <div class="lg:col-span-7 flex flex-col gap-space-lg min-w-0">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="demand"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="rising"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl" id="industries"></section>
+    </div>
+    <!-- Right -->
+    <div class="lg:col-span-5 flex flex-col gap-space-lg min-w-0">
+      <section class="rounded-xl bg-surface-container-low p-space-lg shadow-xl border border-primary-container/40 relative overflow-hidden" id="alignment"></section>
+      <section class="flex flex-col gap-space-md" id="roles"></section>
+      <div class="p-space-md rounded-xl bg-gradient-to-r from-primary-container/20 to-surface-container-low border border-primary-container/30 shadow-xl flex items-center justify-between gap-space-md no-print">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary shrink-0"><span class="material-symbols-outlined text-[20px]">psychology</span></div>
+          <div>
+            <div class="text-sm font-bold text-on-surface">Weighing cleared or federal roles?</div>
+            <div class="text-xs text-on-surface-variant">Talk it through with your AI advisor</div>
+          </div>
+        </div>
+        <a id="clearance-ask" class="shrink-0 px-3 py-1.5 rounded-lg bg-primary-container text-on-primary hover:bg-secondary text-xs font-bold transition-colors" href="student.html">Ask</a>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api, money, apiQuery } = App;
+  const session = Shell.mount({ active: "market" });
+  if (!session) return;
+  const me = encodeURIComponent(session.user.campus_id);
+  const askLink = (q) => `student.html?ask=${encodeURIComponent(q)}${apiQuery().replace("?", "&")}`;
+  const pct = (x, digits = 0) => (x == null ? "—" : `${(x * 100).toFixed(digits)}%`);
+  const pts = (x) => `${x > 0 ? "+" : ""}${x.toFixed(1)} pts`;
+  const HEAD = (icon, title, sub, right = "") => `
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-space-md pb-space-sm border-b border-outline-variant/20">
+      <div>
+        <h2 class="text-title-lg font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-[22px]">${icon}</span>${title}</h2>
+        <p class="text-xs text-on-surface-variant mt-0.5">${sub}</p>
+      </div>${right}
+    </div>`;
+  const STATUS_CHIP = {
+    have: `<span class="text-[11px] font-bold text-emerald-400">✓ You have it</span>`,
+    in_progress: `<span class="text-[11px] font-bold text-secondary">In progress</span>`,
+  };
+  const statusChip = (s) => STATUS_CHIP[s.status] || `<span class="text-[11px] font-bold text-error">${s.course ? `Missing · ${esc(s.course)}` : "Missing"}</span>`;
+  let major = "";
+
+  function renderStats(m) {
+    const rise = m.career_shifts[0];
+    const card = (label, icon, value, tag, sub) => `
+      <div class="relative overflow-hidden rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl flex flex-col justify-between">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-container via-secondary to-transparent opacity-80"></div>
+        <div class="flex items-center justify-between mb-space-sm">
+          <span class="text-[11px] tracking-wider uppercase font-bold text-on-surface-variant">${label}</span>
+          <span class="material-symbols-outlined text-secondary text-[22px]">${icon}</span>
+        </div>
+        <div class="flex flex-wrap items-baseline gap-2 mb-1"><span class="text-headline-lg font-black text-primary tracking-tight">${value}</span>${tag}</div>
+        <p class="text-xs text-on-surface-variant">${sub}</p>
+      </div>`;
+    const salary = m.first_job_salary;
+    $("stats").innerHTML = [
+      card("Entry-level roles", "work_outline", m.scope.entry_role_count.toLocaleString(),
+        `<span class="text-[11px] font-bold text-secondary">${m.scope.first_year}–${m.scope.last_year}</span>`,
+        `<strong class="text-on-surface">${m.entry_roles_latest_year}</strong> alumni started one in ${m.scope.last_year}`),
+      card("Fastest-rising career", "trending_up", esc(rise.career),
+        `<span class="px-1.5 py-0.5 rounded bg-primary-container/15 text-primary text-[11px] font-bold">${pts(rise.change_pts)}</span>`,
+        `Share of entry roles: ${pct(rise.early_share, 1)} (2015–20) → ${pct(rise.recent_share, 1)} (2023–26)`),
+      card("Median first-job salary", "payments", salary ? money(salary.median) : "—",
+        `<span class="text-[11px] text-on-surface-variant font-medium">nominal</span>`,
+        salary ? `Top 25% started above <strong class="text-on-surface">${money(salary.p75)}</strong> · ${Object.entries(m.first_job_salary_by_major).map(([k, v]) => `${k === "Computer Science" ? "CS" : "IS"} ${money(v)}`).join(" · ")}` : "No salary records"),
+      card("Clearance required", "verified_user", pct(m.clearance_share),
+        `<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface text-[11px] font-semibold">entry roles</span>`,
+        `${pct(m.remote_share)} of entry roles were fully remote`),
+    ].join("");
+  }
+
+  function renderDemand(m) {
+    $("demand").innerHTML = HEAD("code", "Skill Demand in Entry-Level Roles",
+      `Share of ${m.scope.entry_role_count.toLocaleString()} alumni entry roles that listed each skill, and where you stand`,
+      `<span class="hidden sm:inline-block px-2.5 py-1 rounded bg-surface-container text-on-surface-variant text-[11px] font-semibold">${m.scope.first_year}–${m.scope.last_year}</span>`) + `
+      <div class="flex flex-col gap-space-md">${m.skill_demand.map((s) => `
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <div class="flex items-center gap-2"><span class="text-sm font-bold text-on-surface">${esc(s.skill)}</span>${statusChip(s)}</div>
+            <span class="text-xs font-bold text-primary">${pct(s.share)} of roles <span class="text-on-surface-variant font-normal">· ${s.change_pts >= 0 ? "▲" : "▼"} ${Math.abs(s.change_pts).toFixed(1)} pts</span></span>
+          </div>
+          <div class="h-2.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+            <div class="h-full rounded-full ${s.status === "have" ? "bg-emerald-400/80" : s.status === "in_progress" ? "bg-secondary" : "bg-primary-container"}" style="width:${s.share * 100}%"></div>
+          </div>
+        </div>`).join("")}</div>`;
+  }
+
+  function renderRising(m) {
+    const shifts = m.career_shifts;
+    $("rising").innerHTML = HEAD("trending_up", "Rising Skills &amp; Shifting Careers", esc(m.period_note),
+      `<span class="px-2 py-0.5 rounded bg-primary-container/15 text-primary text-[11px] font-bold">Trend</span>`) + `
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-md">${m.rising_skills.map((s) => `
+        <div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+          <div class="flex items-start justify-between mb-2 gap-2">
+            <span class="text-sm font-bold text-on-surface">${esc(s.skill)}</span>
+            <span class="px-2 py-0.5 rounded-full bg-primary-container/15 text-primary text-[11px] font-bold whitespace-nowrap">${pts(s.change_pts)}</span>
+          </div>
+          <p class="text-xs text-on-surface-variant mb-space-sm">Now listed by ${pct(s.recent_share)} of recent entry roles.</p>
+          <div class="flex items-center justify-between">${statusChip(s)}</div>
+        </div>`).join("") || `<div class="text-xs text-on-surface-variant">No skills rose in this group.</div>`}</div>
+      <div class="mt-space-md pt-space-sm border-t border-outline-variant/20">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-on-surface-variant mb-space-sm">Share of entry roles by career</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-space-lg gap-y-1.5">${shifts.map((c) => `
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-on-surface">${esc(c.career)}</span>
+            <span><span class="text-on-surface-variant">${pct(c.recent_share, 1)}</span>
+              <span class="font-bold ml-1 ${c.change_pts > 0 ? "text-emerald-400" : c.change_pts < 0 ? "text-error" : "text-on-surface-variant"}">${pts(c.change_pts)}</span></span>
+          </div>`).join("")}</div>
+      </div>`;
+  }
+
+  function renderIndustries(m) {
+    const colors = ["bg-primary-container", "bg-secondary", "bg-tertiary-container", "bg-emerald-400/70", "bg-sky-400/70", "bg-rose-400/70", "bg-outline"];
+    const shown = m.industries.reduce((n, i) => n + i.share, 0);
+    const employed = (m.placement["Employed Full-Time"] || 0) + (m.placement["Employed Part-Time"] || 0);
+    $("industries").innerHTML = HEAD("analytics", "Alumni Industry Placement",
+      `Industry of alumni first jobs, with median nominal starting salary`,
+      `<span class="text-xs font-bold text-on-surface-variant">${esc(m.scope.major || "All majors")}</span>`) + `
+      <div class="h-4 w-full rounded-lg overflow-hidden flex mb-space-md" aria-hidden="true">
+        ${m.industries.map((i, n) => `<div class="${colors[n % colors.length]} h-full" style="width:${i.share * 100}%" title="${esc(i.industry)} (${pct(i.share)})"></div>`).join("")}
+        <div class="bg-surface-container-highest h-full" style="width:${Math.max(0, (1 - shown) * 100)}%" title="Other industries"></div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-space-sm">${m.industries.map((i, n) => `
+        <div class="p-space-sm rounded bg-surface-container flex flex-col justify-between border border-outline-variant/20">
+          <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full ${colors[n % colors.length]} shrink-0"></span><span class="text-xs font-bold text-on-surface">${esc(i.industry)}</span></div>
+          <div class="flex justify-between items-baseline text-[11px]">
+            <span class="font-black text-headline-sm text-primary">${pct(i.share)}</span>
+            <span class="text-on-surface-variant">Median <strong class="text-on-surface">${money(i.median_salary)}</strong></span>
+          </div>
+        </div>`).join("")}
+        <div class="p-space-sm rounded bg-surface-container flex flex-col justify-center border border-outline-variant/20 text-[11px] text-on-surface-variant">
+          <span class="text-headline-sm font-black text-emerald-400">${pct(employed)}</span>
+          employed about six months after graduating, among the ${pct(m.response_rate)} of alumni who reported an outcome
+        </div>
+      </div>`;
+  }
+
+  function renderAlignment(m) {
+    const have = m.skill_demand.filter((s) => s.status === "have");
+    $("alignment").innerHTML = `
+      <div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
+      <div class="flex items-start justify-between mb-space-md gap-3">
+        <div>
+          <span class="text-[11px] uppercase tracking-wider font-extrabold text-secondary">Your market alignment</span>
+          <h2 class="text-title-lg font-bold text-on-surface">Skills vs. recent entry roles</h2>
+        </div>
+        <div class="text-right shrink-0">
+          <div class="text-headline-lg font-black text-primary leading-none">${pct(m.role_skill_coverage)}</div>
+          <span class="text-[11px] text-secondary font-bold">of a typical role's skills</span>
+        </div>
+      </div>
+      <div class="mb-space-md">
+        <div class="text-[11px] font-bold text-on-surface-variant mb-2 uppercase tracking-wide">In-demand skills you've earned</div>
+        <div class="flex flex-wrap gap-1.5">${have.map((s) => `
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container text-on-surface text-[11px] font-semibold border border-outline-variant/20">
+            <span class="material-symbols-outlined text-[14px] text-emerald-400">check_circle</span>${esc(s.skill)} <span class="text-on-surface-variant font-normal">${pct(s.share)}</span></span>`).join("")
+          || `<span class="text-xs text-on-surface-variant">None of the top ${m.skill_demand.length} yet — they come with your first graded courses.</span>`}</div>
+      </div>
+      <div class="flex flex-col gap-space-sm pt-space-sm border-t border-outline-variant/20">
+        <div class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wide">Bridge recommendations</div>
+        ${m.bridge_skills.map((b, i) => `
+          <div class="p-space-sm rounded-lg ${i === 0 ? "bg-primary-container/10 border border-primary-container/30" : "bg-surface-container border border-outline-variant/20"} flex items-start gap-space-sm">
+            <div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-primary shrink-0 mt-0.5"><span class="material-symbols-outlined text-[20px]">construction</span></div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2"><span class="text-sm font-bold text-on-surface">${esc(b.skill)}</span>
+                <span class="text-[11px] font-bold text-secondary whitespace-nowrap">${pct(b.share)} of roles</span></div>
+              <p class="text-xs text-on-surface-variant mt-0.5">${b.course ? `Taught in <strong class="text-primary">${esc(b.course)}</strong> in the course catalog.` : "Not taught in the catalog — build it through a certification, project, or internship."}</p>
+              <a class="inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline mt-1" href="${askLink(`How should I build ${b.skill} skills?`)}">Ask the advisor <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+            </div>
+          </div>`).join("")}
+      </div>`;
+  }
+
+  function renderRoles(m) {
+    const initials = (name) => name.split(/\s+/).filter((w) => /^[A-Z]/.test(w)).slice(0, 3).map((w) => w[0]).join("");
+    $("roles").innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-title-lg font-bold text-on-surface flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-[22px]">rocket_launch</span>Alumni Roles Like Yours</h2>
+          <p class="text-xs text-on-surface-variant">Recent entry-level roles (2023–26) whose skills overlap most with yours</p>
+        </div>
+      </div>
+      ${m.similar_roles.map((r) => `
+        <div class="rounded-xl bg-surface-container-low p-space-md shadow-xl border border-surface-container hover:border-primary-container/50 transition-all group">
+          <div class="flex items-start justify-between gap-space-sm mb-space-xs">
+            <div class="flex items-start gap-space-sm min-w-0">
+              <div class="w-10 h-10 rounded-lg bg-surface-container-highest text-primary-container flex items-center justify-center font-bold text-xs shrink-0">${esc(initials(r.employer))}</div>
+              <div class="min-w-0">
+                <h3 class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">${esc(r.job_title)}</h3>
+                <div class="text-[11px] text-on-surface-variant mt-0.5"><span class="font-semibold text-on-surface">${esc(r.employer)}</span> · ${esc(r.region)} · started ${r.start_year}</div>
+              </div>
+            </div>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-container/15 text-primary text-[11px] font-bold shrink-0">${pct(r.coverage)} skill match</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-y-1 gap-x-space-md py-space-xs my-space-xs border-y border-outline-variant/20 text-[11px] text-on-surface-variant">
+            <span class="font-bold text-on-surface">${money(r.annual_salary_usd)} <span class="font-normal text-on-surface-variant">(${r.start_year} dollars)</span></span>
+            <span>${esc(r.job_family)}</span>
+            ${r.requires_clearance ? `<span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[15px] text-secondary">verified</span>Clearance required</span>` : ""}
+            ${r.is_remote ? `<span>Remote</span>` : ""}
+          </div>
+          <div class="text-[11px] text-on-surface-variant"><span class="text-emerald-400 font-semibold">You have:</span> ${esc(r.matched_skills.join(", "))}</div>
+          ${r.missing_skills.length ? `<div class="text-[11px] text-on-surface-variant mt-0.5"><span class="text-error font-semibold">To build:</span> ${esc(r.missing_skills.join(", "))}</div>` : ""}
+          <div class="flex items-center justify-end pt-space-xs">
+            <a class="inline-flex items-center gap-1 px-space-sm py-1.5 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest text-[11px] font-bold transition-colors no-print"
+              href="${askLink(`How do I prepare for a ${r.job_title} role in ${r.job_family}?`)}">Ask the advisor <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>
+          </div>
+        </div>`).join("")
+        || `<div class="rounded-xl bg-surface-container-low p-space-md border border-surface-container text-xs text-on-surface-variant">Role matches appear once you have graded coursework with skills employers list.</div>`}
+      <p class="text-[10px] text-outline">Employer names are fictitious in this synthetic dataset. These are past alumni hires, not open positions.</p>`;
+  }
+
+  function renderFilter() {
+    document.querySelectorAll("#major-filter button").forEach((b) => {
+      const on = b.dataset.major === major;
+      b.className = `px-3 py-2 ${b.dataset.major ? "border-l border-outline-variant/40" : ""} ${on ? "bg-primary-container text-on-primary font-bold" : "bg-surface-container text-on-surface-variant hover:text-on-surface"}`;
+      b.setAttribute("aria-pressed", String(on));
+    });
+  }
+
+  async function load() {
+    renderFilter();
+    try {
+      const m = await api(`/api/market/${me}${major ? `?major=${encodeURIComponent(major)}` : ""}`);
+      $("scope-line").innerHTML = `<span class="material-symbols-outlined text-[16px] text-secondary">database</span>${esc(m.scope.major || "All majors")} · ${m.scope.alumni_count.toLocaleString()} alumni · ${m.scope.entry_role_count.toLocaleString()} entry-level roles, ${m.scope.first_year}–${m.scope.last_year}`;
+      renderStats(m); renderDemand(m); renderRising(m); renderIndustries(m); renderAlignment(m); renderRoles(m);
+      $("page-error").classList.add("hidden");
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  document.querySelectorAll("#major-filter button").forEach((b) => b.addEventListener("click", () => { major = b.dataset.major; load(); }));
+  $("clearance-ask").href = askLink("Should I target roles that require a security clearance?");
+  api(`/api/dashboard/${me}`).then((d) => Shell.setStudent(d.student)).catch(() => {});
+  load();
+})();
+</script>
+</body></html>

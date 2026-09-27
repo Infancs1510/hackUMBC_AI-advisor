@@ -21,8 +21,8 @@ def test_health(base_client):
     assert body["data"]["courses"] == 72
 
 
-def test_dashboard_for_real_student(base_client):
-    response = base_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}")
+def test_dashboard_for_real_student(advisor_client):
+    response = advisor_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}")
     assert response.status_code == 200
     body = response.json()
     assert body["student"]["gpa"] == 3.0
@@ -34,20 +34,20 @@ def test_dashboard_for_real_student(base_client):
     assert body["salary"]["entry_level"]["sample_size"] > 0
 
 
-def test_dashboard_first_term_student_has_null_gpa(base_client):
-    body = base_client.get(f"/api/dashboard/{FIRST_TERM}").json()
+def test_dashboard_first_term_student_has_null_gpa(advisor_client):
+    body = advisor_client.get(f"/api/dashboard/{FIRST_TERM}").json()
     assert body["student"]["gpa"] is None
     assert body["skills"] == []
 
 
-def test_dashboard_selected_career_and_errors(base_client):
-    body = base_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}", params={"career": "cybersecurity"}).json()
+def test_dashboard_selected_career_and_errors(advisor_client):
+    body = advisor_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}", params={"career": "cybersecurity"}).json()
     assert body["selected_career"] == "Cybersecurity"
-    assert base_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}", params={"career": "Astronaut"}).status_code == 404
-    assert base_client.get("/api/dashboard/CID-000000").status_code == 404
-    alum = base_client.get(f"/api/dashboard/{ALUMNUS}")
+    assert advisor_client.get(f"/api/dashboard/{TRANSFER_JUNIOR}", params={"career": "Astronaut"}).status_code == 404
+    assert advisor_client.get("/api/dashboard/CID-000000").status_code == 404
+    alum = advisor_client.get(f"/api/dashboard/{ALUMNUS}")
     assert alum.status_code == 404 and alum.json()["is_alumnus"] is True
-    assert base_client.get("/api/dashboard/not-an-id").status_code == 422
+    assert advisor_client.get("/api/dashboard/not-an-id").status_code == 422
 
 
 def test_careers(base_client):
@@ -113,8 +113,8 @@ def test_advisor_memory_persists_across_requests(make_client):
 
     listed = client.get(f"/api/advisor/{TRANSFER_JUNIOR}/memories").json()
     assert len(listed["memories"]) == 1
-    # Memories are per student.
-    assert client.get(f"/api/advisor/{FIRST_TERM}/memories").json()["memories"] == []
+    # Another student's memories are off limits.
+    assert client.get(f"/api/advisor/{FIRST_TERM}/memories").status_code == 403
 
 
 def test_memory_never_overrides_dataset_facts(make_client):
@@ -140,7 +140,9 @@ def test_advisor_falls_back_when_gemini_fails(make_client):
 
 
 def test_advisor_without_keys(make_client):
-    body = make_client(gemini=FakeGemini(configured=False), memory=FakeMemory(configured=False)).post(
+    body = make_client(
+        gemini=FakeGemini(configured=False), memory=FakeMemory(configured=False), as_student=FIRST_TERM
+    ).post(
         "/api/advisor", json={"campus_id": FIRST_TERM, "message": "Help"}
     ).json()
     assert body["services"] == {"gemini": "not_configured", "backboard": "not_configured"}
@@ -158,7 +160,7 @@ def test_advisor_survives_backboard_failure(make_client):
 
 def test_advisor_invalid_requests(make_client):
     client = make_client()
-    assert client.post("/api/advisor", json={"campus_id": "CID-000000", "message": "hi"}).status_code == 404
+    assert client.post("/api/advisor", json={"campus_id": "CID-000000", "message": "hi"}).status_code == 403
     assert client.post("/api/advisor", json={"campus_id": TRANSFER_JUNIOR, "message": ""}).status_code == 422
     assert client.post("/api/advisor", json={"campus_id": "bad", "message": "hi"}).status_code == 422
 
@@ -220,8 +222,8 @@ def test_extraction_prompt_lists_known_memories(make_client):
 
 # --- Alumni ----------------------------------------------------------------------------
 
-def test_alumni_view(base_client, store):
-    response = base_client.get(f"/api/alumni/{ALUMNUS}")
+def test_alumni_view(advisor_client, store):
+    response = advisor_client.get(f"/api/alumni/{ALUMNUS}")
     assert response.status_code == 200
     body = response.json()
     row = store.alumni.loc[ALUMNUS]
@@ -238,16 +240,135 @@ def test_alumni_view(base_client, store):
     assert len(body["career_matches"]) == 8
 
 
-def test_alumni_without_job_records(base_client, store):
+def test_alumni_without_job_records(advisor_client, store):
     unemployed = store.alumni[store.alumni["first_destination"] == "No Response"].index[0]
-    body = base_client.get(f"/api/alumni/{unemployed}").json()
+    body = advisor_client.get(f"/api/alumni/{unemployed}").json()
     assert body["first_job"] is None
     assert body["first_job_career_match"] is None
     assert body["employment_history"] == []
 
 
-def test_alumni_errors(base_client):
-    student = base_client.get(f"/api/alumni/{TRANSFER_JUNIOR}")
+def test_alumni_errors(advisor_client):
+    student = advisor_client.get(f"/api/alumni/{TRANSFER_JUNIOR}")
     assert student.status_code == 404 and student.json()["is_student"] is True
-    assert base_client.get("/api/alumni/CID-000000").status_code == 404
-    assert f"/api/alumni/{ALUMNUS}" in base_client.get(f"/api/dashboard/{ALUMNUS}").json()["detail"]
+    assert advisor_client.get("/api/alumni/CID-000000").status_code == 404
+    assert f"/api/alumni/{ALUMNUS}" in advisor_client.get(f"/api/dashboard/{ALUMNUS}").json()["detail"]
+
+
+# --- Degree audit ----------------------------------------------------------------------
+
+def test_degree_audit_for_transfer_student(student_client, store):
+    body = student_client(TRANSFER_JUNIOR).get(f"/api/degree/{TRANSFER_JUNIOR}").json()
+    assert body["credits"]["earned"] == 76 and body["credits"]["in_progress"] == 15
+    assert body["credits"]["remaining_after_current_term"] == 120 - 76 - 15
+    groups = {g["category"]: g for g in body["requirement_groups"]}
+    assert [g["category"] for g in body["requirement_groups"]][0] == "Major Core"
+    core = groups["Major Core"]
+    assert {c["course_id"] for c in core["completed"]} >= {"CMSC202", "CMSC203", "CMSC341"}
+    assert {c["course_id"] for c in core["in_progress"]} == {"CMSC313", "CMSC331"}
+    # Group credits add up to the transcript's earned credits (transfer credit has no rows).
+    transcript = store.transcript_for(TRANSFER_JUNIOR)
+    assert sum(g["completed_credits"] for g in body["requirement_groups"]) == int(transcript["credits_earned"].sum())
+    assert body["credits"]["transfer_credits"] == 76 - int(transcript["credits_earned"].sum())
+    # CMSC201 and ENGL100 are implied by CMSC202 / ENGL393, so they are not "remaining".
+    assert set(body["satisfied_by_prior_credit"]) == {"CMSC201", "ENGL100"}
+    remaining = {c["course_id"]: c for c in body["remaining_required_courses"]}
+    assert set(remaining) == {"CMSC411", "CMSC421", "CMSC441", "CMSC447"}
+    assert remaining["CMSC447"]["status"] == "eligible"
+    assert remaining["CMSC411"]["status"] == "eligible_after_current_term"  # needs CMSC313, in progress
+
+
+def test_degree_audit_first_term_and_access(student_client, advisor_client):
+    body = student_client(FIRST_TERM).get(f"/api/degree/{FIRST_TERM}").json()
+    assert all(g["completed"] == [] for g in body["requirement_groups"])
+    assert body["remaining_required_courses"]
+    assert student_client(FIRST_TERM).get(f"/api/degree/{TRANSFER_JUNIOR}").status_code == 403
+    assert advisor_client.get(f"/api/degree/{TRANSFER_JUNIOR}").status_code == 200
+    assert advisor_client.get(f"/api/degree/{ALUMNUS}").status_code == 404
+
+
+
+# --- Career pathways: market, roadmap, goal --------------------------------------------
+
+def test_career_detail_entry_market(base_client, store):
+    detail = base_client.get("/api/careers/Cybersecurity").json()
+    market = detail["entry_market"]
+    entry = store.employment[(store.employment["job_family"] == "Cybersecurity") & (store.employment["seniority_level"] == "Entry")]
+    assert market["spell_count"] == len(entry)
+    assert market["requires_clearance_share"] == round(float(entry["requires_clearance"].mean()), 3)
+    assert market["top_employers"][0]["count"] == entry["employer"].value_counts().iloc[0]
+    assert market["top_regions"][0]["name"] == entry["region"].value_counts().index[0]
+    certs = detail["alumni_outcomes"]["top_certifications"]
+    assert certs and all(0 < c["share"] <= 1 for c in certs)
+
+
+def test_roadmap_endpoint(student_client, advisor_client):
+    body = student_client(TRANSFER_JUNIOR).get(f"/api/roadmap/{TRANSFER_JUNIOR}", params={"career": "Cybersecurity"}).json()
+    assert body["career"] == "Cybersecurity" and len(body["terms"]) >= 2
+    assert student_client(TRANSFER_JUNIOR).get(f"/api/roadmap/{FIRST_TERM}").status_code == 403
+    assert advisor_client.get(f"/api/roadmap/{FIRST_TERM}").status_code == 200
+    assert student_client(TRANSFER_JUNIOR).get(f"/api/roadmap/{TRANSFER_JUNIOR}", params={"career": "Astronaut"}).status_code == 404
+
+
+def test_career_goal_saved_to_memory(make_client):
+    memory = FakeMemory()
+    client = make_client(memory=memory)
+    assert client.get(f"/api/students/{TRANSFER_JUNIOR}/career-goal").json()["career"] is None
+    saved = client.put(f"/api/students/{TRANSFER_JUNIOR}/career-goal", json={"career": "health it"}).json()
+    assert saved == {"campus_id": TRANSFER_JUNIOR, "career": "Health IT", "backboard": "ok"}
+    assert client.get(f"/api/students/{TRANSFER_JUNIOR}/career-goal").json()["career"] == "Health IT"
+    assert client.put(f"/api/students/{TRANSFER_JUNIOR}/career-goal", json={"career": "Astronaut"}).status_code == 404
+    assert client.put(f"/api/students/{FIRST_TERM}/career-goal", json={"career": "Health IT"}).status_code == 403
+
+
+def test_career_goal_without_backboard(make_client):
+    client = make_client(memory=FakeMemory(configured=False))
+    body = client.put(f"/api/students/{TRANSFER_JUNIOR}/career-goal", json={"career": "Health IT"}).json()
+    assert body["backboard"] == "not_configured" and body["career"] is None
+
+
+
+# --- Market insights -------------------------------------------------------------------
+
+def test_market_insights(student_client, store):
+    body = student_client(TRANSFER_JUNIOR).get(f"/api/market/{TRANSFER_JUNIOR}").json()
+    entry = store.employment[store.employment["seniority_level"] == "Entry"]
+    assert body["scope"]["entry_role_count"] == len(entry)
+    assert body["clearance_share"] == round(float(entry["requires_clearance"].mean()), 3)
+    shares = [s["share"] for s in body["skill_demand"]]
+    assert shares == sorted(shares, reverse=True)
+    statuses = {s["skill"]: s["status"] for s in body["skill_demand"]}
+    assert statuses["Algorithms"] == "have" and statuses["SQL"] == "missing"
+    assert all(b["status"] == "missing" for b in body["bridge_skills"])
+    assert all(b["course"] in store.catalog for b in body["bridge_skills"] if b["course"])
+    assert abs(sum(body["placement"].values()) - 1) < 0.01
+    for role in body["similar_roles"]:
+        assert role["start_year"] >= 2023 and 0 < role["coverage"] <= 1
+        assert set(role["matched_skills"]).isdisjoint(role["missing_skills"])
+    # Salaries are nominal: first-job median equals the raw median of alumni first-job salaries.
+    employed = store.alumni[store.alumni["first_job_annual_salary_usd"].astype(str) != "Not Applicable"]
+    assert body["first_job_salary"]["median"] == round(float(employed["first_job_annual_salary_usd"].astype(int).median()))
+
+
+def test_market_major_filter_and_first_term(student_client, advisor_client, store):
+    body = student_client(FIRST_TERM).get(f"/api/market/{FIRST_TERM}", params={"major": "Information Systems"}).json()
+    assert body["scope"]["major"] == "Information Systems"
+    assert body["scope"]["alumni_count"] == int((store.alumni["major"] == "Information Systems").sum())
+    assert body["role_skill_coverage"] == 0 and body["similar_roles"] == []
+    assert student_client(FIRST_TERM).get(f"/api/market/{FIRST_TERM}", params={"major": "Art"}).status_code == 422
+    assert student_client(FIRST_TERM).get(f"/api/market/{TRANSFER_JUNIOR}").status_code == 403
+    assert advisor_client.get(f"/api/market/{TRANSFER_JUNIOR}").status_code == 200
+
+
+def test_cors_preflight_allows_write_methods(base_client):
+    for method in ["POST", "PUT", "PATCH", "DELETE"]:
+        response = base_client.options(
+            "/api/students/CID-116490/career-goal",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": method,
+                "Access-Control-Request-Headers": "authorization,content-type",
+            },
+        )
+        assert response.status_code == 200, method
+        assert method in response.headers["access-control-allow-methods"]

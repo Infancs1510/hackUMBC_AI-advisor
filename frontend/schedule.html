@@ -1,0 +1,439 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Appointments &amp; Schedule</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+    <div>
+      <div class="flex flex-wrap items-center gap-space-sm mb-1.5">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant text-[11px] font-semibold uppercase tracking-wider"><span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>Advising · <span id="tz">Eastern Time</span></span>
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Appointments <span class="text-primary-container">&amp; Schedule</span></h1>
+      <p class="text-body-md text-on-surface-variant max-w-3xl mt-1">Your advising slots for the week — who's booked, what they want to cover, and a snapshot of their record taken when they booked. Students book from their Appointments page.</p>
+    </div>
+    <div class="flex items-center gap-space-sm flex-shrink-0">
+      <button id="refresh" class="flex items-center gap-space-xs px-space-md py-2.5 rounded-xl bg-surface-container text-on-surface hover:bg-surface-container-high border border-outline-variant/30 text-sm font-semibold" type="button"><span class="material-symbols-outlined text-base text-primary">sync</span>Refresh</button>
+    </div>
+  </div>
+
+  <!-- Week navigator + view switch -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md bg-surface-container-low border border-surface-container p-space-md rounded-xl shadow-xl">
+    <div class="flex flex-wrap items-center gap-space-sm">
+      <div class="flex items-center bg-surface-container rounded-lg p-0.5">
+        <button id="prev" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Previous week" type="button"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+        <span class="px-space-md text-sm text-on-surface font-bold whitespace-nowrap" id="week-label">—</span>
+        <button id="next" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" title="Next week" type="button"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+      </div>
+      <button id="today" class="px-space-sm py-1 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold hover:bg-surface-container-highest" type="button">This week</button>
+      <div class="flex items-center gap-1" id="day-tabs"></div>
+    </div>
+    <div class="flex items-center bg-surface-container p-1 rounded-lg gap-1" id="views">
+      <button data-view="day" class="px-space-md py-1.5 rounded-md text-xs" type="button">Day</button>
+      <button data-view="week" class="px-space-md py-1.5 rounded-md text-xs" type="button">Week</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+    <div class="xl:col-span-8 flex flex-col gap-space-md min-w-0">
+      <div id="agenda"><div class="text-sm text-on-surface-variant">Loading…</div></div>
+      <div id="capacity"></div>
+    </div>
+
+    <aside class="xl:col-span-4 flex flex-col gap-space-md">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="notes-pad"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="needs"></section>
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-md shadow-xl" id="rules"></section>
+    </aside>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/advisor-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = AdvisorShell.mount({ active: "schedule" });
+  if (!session) return;
+  const { toast, withApi } = AdvisorShell;
+
+  const params = new URLSearchParams(location.search);
+  let weekOf = params.get("week") || "", view = "day", selectedDay = null, selectedAppt = null;
+  let sched = null, needs = [], requests = [];
+  let tz = "America/New_York";
+
+  const fmt = (iso, opts) => new Intl.DateTimeFormat("en-US", { timeZone: tz, ...opts }).format(new Date(iso));
+  const time = (iso) => fmt(iso, { hour: "numeric", minute: "2-digit" });
+  const studentLink = (cid) => withApi(`student-file.html#${cid}`);
+  const post = (path, body) => api(path, { method: body ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+
+  const STATE = {
+    booked: ["Upcoming", "bg-surface-container-high text-on-surface-variant"],
+    completed: ["Completed", "bg-emerald-500/10 text-emerald-400"],
+    no_show: ["No-show", "bg-error-container/30 text-error"],
+    open: ["Open", "bg-primary-container/15 text-primary"],
+    closed: ["Unbooked", "bg-surface-container text-outline"],
+  };
+  const pill = (state, label) => `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${STATE[state][1]}">${label || STATE[state][0]}</span>`;
+
+  const allAppointments = () => sched.days.flatMap((d) => [...d.slots.map((s) => s.appointment).filter(Boolean), ...d.cancelled]);
+  const now = () => new Date();
+  const isLive = (a) => a.status === "booked" && new Date(a.start) <= now() && now() < new Date(a.end);
+  const started = (a) => new Date(a.start) <= now();
+
+  // The appointment to spotlight on a day: the one in progress, else the next booked one (today only).
+  function spotlight(day) {
+    if (!day.is_today) return null;
+    const booked = day.slots.map((s) => s.appointment).filter((a) => a && a.status === "booked" && new Date(a.end) > now());
+    return booked.find(isLive) || booked[0] || null;
+  }
+
+  // ---------------- Header controls ----------------
+  function renderControls() {
+    $("week-label").textContent = `Week of ${sched.week_label}`;
+    $("tz").textContent = sched.timezone.replace("_", " ");
+    $("day-tabs").innerHTML = sched.days.map((d) => {
+      const n = d.slots.filter((s) => s.appointment).length;
+      const active = view === "day" && d.date === selectedDay;
+      return `<button data-day="${d.date}" type="button" class="px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 ${active ? "bg-primary-container text-on-primary font-bold" : "bg-surface-container text-on-surface-variant hover:text-on-surface"}">
+        <span>${d.weekday} ${d.label.split(" ")[1]}</span>${n ? `<span class="px-1.5 rounded-full text-[10px] font-bold ${active ? "bg-on-primary/20" : "bg-surface-container-highest text-on-surface"}">${n}</span>` : ""}${d.is_today ? `<span class="w-1.5 h-1.5 rounded-full ${active ? "bg-on-primary" : "bg-primary-container"}"></span>` : ""}</button>`;
+    }).join("");
+    $("day-tabs").querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => { selectedDay = b.dataset.day; view = "day"; render(); }));
+    $("views").querySelectorAll("[data-view]").forEach((b) => {
+      const on = b.dataset.view === view;
+      b.className = `px-space-md py-1.5 rounded-md text-xs ${on ? "bg-surface-container-highest text-on-surface font-bold shadow-sm" : "text-on-surface-variant hover:text-on-surface"}`;
+    });
+  }
+
+  // ---------------- Day view ----------------
+  function brief(a) {
+    const b = a.brief;
+    return `${esc(b.class_level)} · ${esc(b.major)} (${esc(b.track)})`;
+  }
+
+  function actions(a, primary) {
+    if (a.status !== "booked") {
+      return `<button data-notes="${a.id}" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_note</span>${a.session_note ? "View notes" : "Add notes"}</button>`;
+    }
+    return `
+      <a href="${studentLink(a.campus_id)}" class="${primary ? "px-4 py-2 bg-primary-container text-on-primary hover:bg-secondary font-bold shadow-md" : "px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold"} rounded-lg text-[11px] flex items-center gap-1"><span class="material-symbols-outlined text-sm">${primary ? "play_arrow" : "folder_shared"}</span>${primary ? "Open student file" : "Student file"}</a>
+      <button data-notes="${a.id}" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[11px] font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-sm">edit_note</span>Notes</button>
+      ${started(a) ? `<button data-complete="${a.id}" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-emerald-400 text-[11px] font-semibold">Mark completed</button>
+      <button data-noshow="${a.id}" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant text-[11px] font-semibold">Mark no-show</button>` : ""}
+      <button data-cancel="${a.id}" class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-error-container/30 text-error text-[11px] font-semibold">Cancel</button>`;
+  }
+
+  function featuredCard(slot, a) {
+    const b = a.brief, live = isLive(a);
+    return `
+      <div class="relative bg-surface-container-low rounded-xl p-space-lg shadow-xl ring-2 ring-primary-container/70 overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-primary-container/10 blur-2xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row md:items-start justify-between gap-space-md mb-space-md relative">
+          <div class="flex items-start gap-space-md">
+            <div class="flex flex-col min-w-[84px]">
+              <span class="text-headline-sm font-extrabold text-primary">${esc(slot.label)}</span>
+              <span class="text-[11px] font-bold flex items-center gap-1 ${live ? "text-primary" : "text-on-surface-variant"}">${live ? `<span class="w-2 h-2 rounded-full bg-primary-container animate-ping"></span>In progress` : `${Math.round((new Date(a.end) - new Date(a.start)) / 60000)} min`}</span>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-primary-container text-on-primary text-[11px] font-bold uppercase tracking-wider">${live ? "Current session" : "Up next"}</span>
+                <span class="text-[11px] text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">${a.modality === "virtual" ? "videocam" : "meeting_room"}</span>${a.modality === "virtual" ? "Virtual" : "In person"}</span>
+              </div>
+              <a href="${studentLink(a.campus_id)}" class="block text-title-lg font-bold text-on-surface hover:text-primary mt-1">${esc(a.campus_id)}</a>
+              <p class="text-xs text-on-surface-variant">${brief(a)} · <strong class="text-on-surface">${esc(a.reason_label)}</strong></p>
+            </div>
+          </div>
+          <div class="flex md:flex-col items-end gap-1 bg-surface-container p-space-sm rounded-lg self-start">
+            <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Degree progress</span>
+            <span class="text-headline-sm font-bold text-primary">${b.credits_earned} / ${b.credits_required} cr</span>
+            <span class="text-[11px] font-semibold ${b.academic_standing === "Good Standing" ? "text-secondary" : "text-error"}">${b.gpa == null ? "First term" : `GPA ${b.gpa.toFixed(2)}`} · ${esc(b.academic_standing)}</span>
+          </div>
+        </div>
+        <div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-sm relative">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-space-sm text-xs">
+            <div><div class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-0.5">Remaining required</div><div class="text-on-surface">${esc(b.remaining_required_courses.join(", ") || "None")}</div></div>
+            <div><div class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-0.5">Top career match</div><div class="text-on-surface">${b.top_career ? `${esc(b.top_career)} <span class="text-on-surface-variant">(${b.top_career_score})</span>` : "Not enough coursework yet"}</div></div>
+            <div><div class="text-[10px] uppercase tracking-wider text-on-surface-variant font-bold mb-0.5">Saved goal · graduation</div><div class="text-on-surface">${esc(b.saved_goal || "No goal saved")} · ${esc(b.expected_graduation_term)}</div></div>
+          </div>
+          ${a.notes ? `<p class="text-xs text-on-surface border-t border-outline-variant/20 pt-space-sm">Student wrote: “${esc(a.notes)}”</p>` : ""}
+          <div class="flex flex-wrap items-center gap-space-xs pt-1">${actions(a, true)}</div>
+          <p class="text-[10px] text-outline">Snapshot taken ${esc(fmt(a.created_at, { month: "short", day: "numeric" }))} when the student booked.</p>
+        </div>
+      </div>`;
+  }
+
+  function slotRow(slot, featuredId) {
+    const a = slot.appointment;
+    if (a && a.id === featuredId) return featuredCard(slot, a);
+    const timeCol = `<div class="flex items-center gap-space-md min-w-[180px]"><div class="flex flex-col"><span class="text-body-lg font-bold text-on-surface">${esc(slot.label)}</span><span class="text-[11px] text-outline">${sched.rules.duration_minutes} min</span></div>${pill(slot.state)}</div>`;
+    if (!a) {
+      return `
+        <div class="rounded-xl p-space-md border-2 border-dashed ${slot.state === "open" ? "border-primary-container/30 bg-surface-container-low/60" : "border-outline-variant/20 bg-surface-container-lowest/40 opacity-70"} flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+          ${timeCol}
+          <div class="flex-1 text-xs text-on-surface-variant">${slot.state === "open" ? "Open — students can still book this slot." : "Nobody booked this slot."}</div>
+        </div>`;
+    }
+    const done = a.status !== "booked";
+    return `
+      <div class="bg-surface-container-low border border-surface-container rounded-xl p-space-md shadow-md flex flex-col md:flex-row md:items-center justify-between gap-space-md ${done ? "opacity-80 hover:opacity-100" : ""} transition-opacity">
+        ${timeCol}
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-x-2"><a href="${studentLink(a.campus_id)}" class="text-sm font-bold text-on-surface hover:text-primary">${esc(a.campus_id)}</a><span class="text-[11px] text-on-surface-variant">• ${brief(a)}</span></div>
+          <p class="text-xs text-on-surface-variant flex items-center gap-1.5 mt-0.5"><span class="material-symbols-outlined text-sm ${a.modality === "virtual" ? "text-secondary" : ""}">${a.modality === "virtual" ? "videocam" : "meeting_room"}</span>${a.modality === "virtual" ? "Virtual" : "In person"} · ${esc(a.reason_label)}${a.session_note ? ` · <span class="text-primary">has notes</span>` : ""}</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-space-xs md:justify-end">${actions(a, false)}</div>
+      </div>`;
+  }
+
+  function renderDay() {
+    const day = sched.days.find((d) => d.date === selectedDay) || sched.days[0];
+    const feat = spotlight(day);
+    const count = (st) => day.slots.filter((s) => s.state === st).length;
+    const nextOpen = day.slots.find((s) => s.state === "open");
+    const d = new Date(day.date + "T12:00:00");
+    $("agenda").innerHTML = `
+      <div class="flex flex-col gap-space-sm">
+        <div class="bg-surface-container-low border border-surface-container rounded-xl p-space-md shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+          <div class="flex items-center gap-space-md">
+            <div class="w-12 h-12 rounded-xl ${day.is_today ? "bg-primary-container text-on-primary" : "bg-surface-container-highest text-on-surface"} flex flex-col items-center justify-center font-bold shrink-0">
+              <span class="text-[10px] uppercase leading-none opacity-80">${day.weekday}</span><span class="text-xl leading-none">${d.getDate()}</span>
+            </div>
+            <div>
+              <h2 class="text-headline-sm font-bold text-on-surface">${esc(d.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }))}${day.is_today ? ` <span class="text-xs text-primary font-bold align-middle">Today</span>` : ""}</h2>
+              <p class="text-xs text-on-surface-variant">${count("booked")} upcoming · ${count("completed")} completed · ${count("no_show")} no-show · ${count("open")} open${day.cancelled.length ? ` · ${day.cancelled.length} cancelled` : ""}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-space-xs text-xs text-on-surface-variant bg-surface-container px-space-sm py-1.5 rounded-lg">
+            <span class="material-symbols-outlined text-secondary text-sm">schedule</span>
+            <span>${nextOpen ? `Next open slot: <strong class="text-on-surface">${esc(nextOpen.label)}</strong>` : "No open slots this day"}</span>
+          </div>
+        </div>
+        ${day.slots.map((s) => slotRow(s, feat && feat.id)).join("")}
+        ${day.cancelled.length ? `
+          <div class="rounded-xl bg-surface-container-lowest/60 border border-surface-container p-space-md">
+            <div class="text-[11px] uppercase tracking-wider font-bold text-on-surface-variant mb-space-xs">Cancelled</div>
+            ${day.cancelled.map((a) => `<div class="flex items-center justify-between text-xs py-1"><span class="text-on-surface-variant line-through">${esc(time(a.start))} · ${esc(a.campus_id)} · ${esc(a.reason_label)}</span><a class="text-primary hover:underline" href="${studentLink(a.campus_id)}">File</a></div>`).join("")}
+          </div>` : ""}
+      </div>`;
+    if (!selectedAppt || !allAppointments().some((a) => a.id === selectedAppt)) selectedAppt = feat ? feat.id : null;
+  }
+
+  // ---------------- Week view ----------------
+  function renderWeek() {
+    const cell = (s) => {
+      const a = s.appointment;
+      if (!a) return `<div class="h-[68px] rounded-lg border border-dashed ${s.state === "open" ? "border-primary-container/30 text-primary" : "border-outline-variant/15 text-outline"} flex items-center justify-center text-[11px]">${s.state === "open" ? "Open" : "—"}</div>`;
+      const tone = { booked: "border-primary-container/50 bg-surface-container", completed: "border-emerald-500/30 bg-emerald-500/5", no_show: "border-error/40 bg-error-container/10" }[a.status];
+      return `<button data-notes="${a.id}" class="h-[68px] w-full text-left rounded-lg border ${tone} p-2 hover:bg-surface-container-high transition-colors">
+        <div class="text-[11px] font-bold text-on-surface truncate">${esc(a.campus_id)}</div>
+        <div class="text-[10px] text-on-surface-variant truncate">${esc(a.reason_label)}</div>
+        <div class="text-[10px] ${a.status === "no_show" ? "text-error" : a.status === "completed" ? "text-emerald-400" : "text-primary"} font-semibold">${STATE[a.status][0]} · ${a.modality === "virtual" ? "Virtual" : "In person"}</div>
+      </button>`;
+    };
+    $("agenda").innerHTML = `
+      <div class="bg-surface-container-low border border-surface-container rounded-xl p-space-md shadow-xl overflow-x-auto">
+        <div class="grid grid-cols-[64px_repeat(5,minmax(120px,1fr))] gap-2 min-w-[680px]">
+          <div></div>
+          ${sched.days.map((d) => `<button data-day="${d.date}" class="text-left px-1 pb-1 ${d.is_today ? "text-primary" : "text-on-surface-variant"} hover:text-on-surface"><div class="text-[11px] uppercase font-bold tracking-wider">${d.weekday}</div><div class="text-xs">${d.label}</div></button>`).join("")}
+          ${sched.rules.slot_times.map((t, i) => `<div class="text-[11px] text-on-surface-variant font-semibold pt-2">${t}</div>${sched.days.map((d) => cell(d.slots[i])).join("")}`).join("")}
+        </div>
+        <p class="text-[11px] text-on-surface-variant mt-space-sm">Click a day to open it, or an appointment to see its notes.</p>
+      </div>`;
+    $("agenda").querySelectorAll("[data-day]").forEach((b) => b.addEventListener("click", () => { selectedDay = b.dataset.day; view = "day"; render(); }));
+  }
+
+  // ---------------- Capacity strip ----------------
+  function renderCapacity() {
+    const s = sched.summary, used = s.booked + s.completed + s.no_show;
+    const pct = s.slots ? Math.round((used / s.slots) * 100) : 0;
+    const reasons = Object.entries(s.by_reason);
+    $("capacity").innerHTML = `
+      <div class="bg-surface-container-low border border-surface-container rounded-xl p-space-lg shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+        <div class="flex items-center gap-space-md">
+          <div class="relative w-14 h-14 flex items-center justify-center shrink-0">
+            <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+              <path class="text-surface-container-highest" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+              <path class="text-primary-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="${pct}, 100" stroke-width="3.5"></path>
+            </svg>
+            <span class="absolute text-xs font-bold text-primary">${pct}%</span>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-on-surface">Weekly advising capacity</h3>
+            <p class="text-xs text-on-surface-variant">${used} of ${s.slots} slots booked this week${reasons.length ? ` · most common: ${esc(reasons[0][0])} (${reasons[0][1]})` : ""}.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-space-md">
+          ${[["Upcoming", s.booked, "text-on-surface"], ["Completed", s.completed, "text-emerald-400"], ["No-shows", s.no_show, "text-error"], ["Cancelled", s.cancelled, "text-on-surface-variant"]].map(([l, v, c], i) => `
+            ${i ? `<div class="h-8 w-px bg-outline-variant/30"></div>` : ""}
+            <div class="text-right"><span class="text-[10px] text-outline uppercase block tracking-wider">${l}</span><span class="text-headline-sm font-bold ${c}">${v}</span></div>`).join("")}
+        </div>
+      </div>`;
+  }
+
+  // ---------------- Session notes ----------------
+  function renderNotes() {
+    const a = allAppointments().find((x) => x.id === selectedAppt);
+    $("notes-pad").innerHTML = `
+      <div class="flex items-center justify-between mb-space-xs">
+        <div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-primary-container text-base">edit_note</span><h3 class="text-sm font-bold text-on-surface">Session notes</h3></div>
+        <span class="text-[10px] text-outline flex items-center gap-1"><span class="material-symbols-outlined text-xs">lock</span>Advisors only</span>
+      </div>
+      ${a ? `
+        <p class="text-xs text-on-surface-variant mb-space-sm"><a href="${studentLink(a.campus_id)}" class="text-on-surface font-bold hover:text-primary">${esc(a.campus_id)}</a> · ${esc(fmt(a.start, { weekday: "short", month: "short", day: "numeric" }))}, ${esc(time(a.start))} · ${esc(a.reason_label)} · ${STATE[a.status] ? STATE[a.status][0] : "Cancelled"}</p>
+        <textarea id="note-text" maxlength="2000" rows="5" class="w-full bg-surface-container text-on-surface text-sm rounded-lg border-outline-variant/30 focus:ring-primary resize-none placeholder:text-outline" placeholder="What you discussed, courses you agreed on, follow-ups…">${esc(a.session_note)}</textarea>
+        <div class="mt-space-sm flex items-center justify-between gap-2">
+          <span class="text-[10px] text-outline">Saved in this app; students never see these.</span>
+          <button id="note-save" class="px-space-md py-1.5 rounded-lg bg-primary-container text-on-primary hover:bg-secondary text-xs font-bold" type="button">Save notes</button>
+        </div>` : `<p class="text-xs text-on-surface-variant">Pick an appointment (<strong class="text-on-surface">Notes</strong> on its card) to write private notes for it.</p>`}`;
+    if (a) $("note-save").addEventListener("click", async () => {
+      try {
+        const r = await post(`/api/appointments/${a.id}/session-note`, { note: $("note-text").value });
+        a.session_note = r.note;
+        toast(r.note ? "Notes saved." : "Notes cleared.");
+        render();
+      } catch (err) { toast(err.message); }
+    });
+  }
+
+  // ---------------- Needs a meeting ----------------
+  function renderNeeds() {
+    const reqIds = new Set(requests.map((r) => r.campus_id));
+    $("needs").innerHTML = `
+      <div class="flex items-center justify-between mb-space-xs">
+        <div class="flex items-center gap-space-xs"><span class="w-2.5 h-2.5 rounded-full bg-error"></span><h3 class="text-sm font-bold text-on-surface">Needs a meeting</h3></div>
+        <span class="px-2 py-0.5 rounded-full bg-error-container/30 text-error text-[11px] font-bold">${needs.length}</span>
+      </div>
+      <p class="text-xs text-on-surface-variant mb-space-sm">Students on academic warning or probation, or whose required courses may not fit before graduation, with no appointment booked.</p>
+      <div class="flex flex-col gap-1.5 max-h-[340px] overflow-y-auto">
+        ${needs.slice(0, 25).map((s) => `
+          <div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors gap-2">
+            <div class="min-w-0">
+              <a href="${studentLink(s.campus_id)}" class="text-xs font-bold text-on-surface hover:text-primary">${esc(s.campus_id)}</a>
+              <p class="text-[11px] text-on-surface-variant truncate">${esc(s.class_level)} · ${esc(s.flags.filter((f) => f.code === "academic_standing" || f.code === "graduation_risk").map((f) => f.label).join(" · "))}</p>
+            </div>
+            ${reqIds.has(s.campus_id)
+              ? `<span class="text-[11px] text-on-surface-variant shrink-0">Requested</span>`
+              : `<button data-request="${esc(s.campus_id)}" data-grad="${s.flags.some((f) => f.code === "graduation_risk") && !s.flags.some((f) => f.code === "academic_standing") ? 1 : ""}" class="text-primary hover:text-on-surface text-[11px] font-bold shrink-0">Request</button>`}
+          </div>`).join("") || `<p class="text-xs text-on-surface-variant">Everyone flagged already has an appointment.</p>`}
+      </div>
+      ${needs.length > 25 ? `<a href="${withApi("roster.html?flag=academic_standing")}" class="block mt-space-sm text-[11px] text-primary hover:underline">See all ${needs.length} in the roster</a>` : ""}
+      <div class="mt-space-sm pt-space-sm border-t border-outline-variant/20 text-[11px] text-on-surface-variant">${requests.length} meeting request${requests.length === 1 ? "" : "s"} waiting for the student to book.</div>`;
+    $("needs").querySelectorAll("[data-request]").forEach((b) => b.addEventListener("click", async () => {
+      const cid = b.dataset.request;
+      const message = prompt(`Ask ${cid} to book a degree progress check.\nOptional message:`, b.dataset.grad ? "Let's make sure your remaining required courses fit before graduation." : "I'd like to check in on how your semester is going.");
+      if (message === null) return;
+      try {
+        await api("/api/meeting-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ campus_id: cid, reason: "degree_check", message }) });
+        toast(`Meeting requested — ${cid} will see it on their Appointments page.`);
+        await loadSide(); renderNeeds();
+      } catch (err) { toast(err.message); }
+    }));
+  }
+
+  // ---------------- Rules ----------------
+  function renderRules() {
+    const r = sched.rules;
+    const row = (title, sub, right) => `<div class="flex items-center justify-between gap-2 p-space-sm bg-surface-container rounded-lg"><div><p class="text-xs font-semibold text-on-surface">${title}</p><p class="text-[11px] text-on-surface-variant">${sub}</p></div>${right ? `<span class="text-[11px] bg-surface-container-highest px-2 py-0.5 rounded font-bold text-primary shrink-0">${right}</span>` : ""}</div>`;
+    $("rules").innerHTML = `
+      <h3 class="text-sm font-bold text-on-surface mb-space-xs">Availability &amp; booking rules</h3>
+      <p class="text-xs text-on-surface-variant mb-space-sm">The hours students can book, set in the app's configuration.</p>
+      <div class="flex flex-col gap-space-xs">
+        ${row("Advising hours", `Mon–Fri · ${esc(r.slot_times.join(", "))}`, `${r.slot_times.length}/day`)}
+        ${row("Session length", `${r.duration_minutes}-minute appointments`, `${r.duration_minutes} min`)}
+        ${row("Booking notice", `Students book at least ${r.min_notice_hours} hours ahead`, `${r.min_notice_hours} h`)}
+        ${row("Booking window", `The next ${r.booking_window_weekdays} working days, starting tomorrow`, "2 weeks")}
+        ${row("Formats", esc(r.modalities.join(" or ")), "")}
+        ${row("One at a time", "Each student can hold one upcoming appointment", "")}
+      </div>`;
+  }
+
+  // ---------------- Wiring ----------------
+  function render() {
+    renderControls();
+    view === "week" ? renderWeek() : renderDay();
+    renderCapacity(); renderNotes(); renderNeeds(); renderRules();
+    $("agenda").querySelectorAll("[data-notes]").forEach((b) => b.addEventListener("click", () => { selectedAppt = +b.dataset.notes; renderNotes(); $("notes-pad").scrollIntoView({ behavior: "smooth", block: "nearest" }); }));
+    $("agenda").querySelectorAll("[data-complete]").forEach((b) => b.addEventListener("click", () => act(b.dataset.complete, "complete", "Marked completed.")));
+    $("agenda").querySelectorAll("[data-noshow]").forEach((b) => b.addEventListener("click", () => act(b.dataset.noshow, "no-show", "Marked as a no-show.")));
+    $("agenda").querySelectorAll("[data-cancel]").forEach((b) => b.addEventListener("click", () => {
+      if (confirm("Cancel this appointment? The student will see it as cancelled and the slot opens up again.")) act(b.dataset.cancel, "cancel", "Appointment cancelled.");
+    }));
+  }
+
+  async function act(id, action, message) {
+    try {
+      await api(`/api/appointments/${id}/${action}`, { method: "POST" });
+      toast(message);
+      selectedAppt = +id;
+      await load();
+    } catch (err) { toast(err.message); }
+  }
+
+  async function loadSide() {
+    const [standing, grad, upcoming, reqs] = await Promise.all([
+      api("/api/caseload?flag=academic_standing&page_size=100"),
+      api("/api/caseload?flag=graduation_risk&page_size=100"),
+      api("/api/appointments"),
+      api("/api/meeting-requests"),
+    ]);
+    const booked = new Set(upcoming.appointments.map((a) => a.campus_id));
+    const seen = new Map();
+    for (const s of [...standing.students, ...grad.students]) if (!booked.has(s.campus_id)) seen.set(s.campus_id, s);
+    needs = [...seen.values()];
+    requests = reqs.requests;
+  }
+
+  async function load() {
+    try {
+      const [s, dash] = await Promise.all([
+        api(`/api/appointments/schedule${weekOf ? `?week=${encodeURIComponent(weekOf)}` : ""}`),
+        api("/api/advisor-dashboard"),
+        loadSide(),
+      ]);
+      sched = s; tz = s.timezone;
+      AdvisorShell.setAdvisor({ name: dash.advisor, caseload: dash.total_students, upcoming: dash.upcoming_appointments });
+      if (!s.days.some((d) => d.date === selectedDay)) selectedDay = (s.days.find((d) => d.is_today) || s.days[0]).date;
+      render();
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  function shiftWeek(days) {
+    const d = new Date((sched ? sched.week_start : new Date().toISOString().slice(0, 10)) + "T12:00:00");
+    d.setDate(d.getDate() + days);
+    weekOf = d.toISOString().slice(0, 10);
+    selectedDay = null;
+    load();
+  }
+
+  $("prev").addEventListener("click", () => shiftWeek(-7));
+  $("next").addEventListener("click", () => shiftWeek(7));
+  $("today").addEventListener("click", () => { weekOf = ""; selectedDay = null; load(); });
+  $("refresh").addEventListener("click", load);
+  $("views").querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => { view = b.dataset.view; render(); }));
+  load();
+})();
+</script>
+</body></html>

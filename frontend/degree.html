@@ -1,0 +1,375 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Degree &amp; Skills</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="assets/tw-config.js"></script>
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col font-body-md">
+
+<div id="shell"></div>
+
+<div class="lg:pl-64 flex flex-col flex-1 min-h-screen bg-surface">
+<main class="w-full pt-16 flex-1 bg-surface">
+<div class="p-space-md md:p-space-lg max-w-[1720px] mx-auto w-full flex flex-col gap-space-lg">
+
+  <div id="page-error" class="hidden bg-error-container/30 border border-error/40 text-error text-sm rounded-xl p-4"></div>
+
+  <!-- Page heading -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+    <div>
+      <div class="flex flex-wrap items-center gap-space-sm mb-space-xs">
+        <span class="px-2.5 py-0.5 rounded-full bg-primary-container/15 text-primary font-label-code text-[11px] uppercase tracking-wider font-bold border border-primary-container/30">From university records</span>
+        <span class="text-on-surface-variant text-xs">As of Sep 15, 2026 · Fall 2026 in progress</span>
+      </div>
+      <h1 class="text-headline-xl-mobile md:text-headline-xl font-extrabold tracking-tight text-on-surface">Degree Progress &amp; <span class="text-primary-container">Skills Audit</span></h1>
+      <p class="text-body-md text-on-surface-variant mt-1" id="subtitle">Loading…</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-space-sm no-print">
+      <button id="print-btn" class="inline-flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-surface-container text-on-surface border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-xs font-semibold" type="button">
+        <span class="material-symbols-outlined text-[18px] text-secondary">download</span>Print / Save as PDF
+      </button>
+      <a id="ask-btn" class="inline-flex items-center gap-2 px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary hover:bg-secondary transition-colors text-xs font-bold shadow-[0_0_12px_rgba(255,179,0,0.3)]" href="student.html">
+        <span class="material-symbols-outlined text-[18px]">support_agent</span>Plan with the AI advisor
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+    <div class="lg:col-span-4 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col justify-between relative overflow-hidden" id="card-grades">
+      <div class="text-sm text-on-surface-variant">Loading…</div>
+    </div>
+    <div class="lg:col-span-4 rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl flex flex-col justify-between" id="card-pace">
+      <div class="text-sm text-on-surface-variant">Loading…</div>
+    </div>
+    <div class="lg:col-span-4 rounded-xl p-space-lg shadow-xl flex flex-col justify-between relative overflow-hidden border border-primary-container/40 bg-gradient-to-br from-primary-container/20 via-surface-container-low to-surface-container-low" id="card-next">
+      <div class="text-sm text-on-surface-variant">Loading…</div>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+    <!-- Left: requirements -->
+    <div class="lg:col-span-7 flex flex-col gap-space-lg min-w-0" id="requirements">
+      <div class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg text-sm text-on-surface-variant">Loading requirements…</div>
+    </div>
+
+    <!-- Right: skills, experience, credit mix -->
+    <div class="lg:col-span-5 flex flex-col gap-space-lg min-w-0">
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl">
+        <div class="flex items-center gap-space-sm mb-space-sm">
+          <span class="material-symbols-outlined text-secondary text-[24px]">verified</span>
+          <div>
+            <h2 class="text-title-lg font-bold text-on-surface">Verified Skills Matrix</h2>
+            <p class="text-xs text-on-surface-variant">Earned through courses you passed</p>
+          </div>
+        </div>
+        <div class="p-space-sm rounded-lg bg-primary-container/10 border border-primary-container/20 mb-space-md flex items-start gap-space-sm">
+          <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">school</span>
+          <div class="text-xs text-on-surface-variant"><span class="font-bold text-primary">How skills are verified:</span> each skill comes from the course catalog's skill tags for a course on your transcript with a grade of A–D. A dot marks skills reinforced by more than one course.</div>
+        </div>
+        <div id="skills" class="flex flex-col gap-space-md text-sm text-on-surface-variant">Loading…</div>
+      </section>
+
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-primary-container"></div>
+        <div class="flex items-center gap-space-sm mb-space-xs">
+          <span class="material-symbols-outlined text-secondary text-[22px]">science</span>
+          <span class="font-label-code text-[11px] uppercase tracking-wider text-secondary font-bold">Experiential learning</span>
+        </div>
+        <div id="experience" class="text-sm text-on-surface-variant">Loading…</div>
+      </section>
+
+      <section class="rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl">
+        <h3 class="text-sm font-bold text-on-surface mb-1">Credit Mix</h3>
+        <p class="text-xs text-on-surface-variant mb-space-sm">Share of completed UMBC credits by requirement category</p>
+        <div id="credit-mix" class="flex flex-col gap-space-sm text-sm text-on-surface-variant">Loading…</div>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<div id="shell-footer"></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/student-shell.js"></script>
+<script>
+(function () {
+  const { $, esc, api } = App;
+  const session = Shell.mount({ active: "degree" });
+  if (!session) return;
+  const me = session.user.campus_id;
+
+  const CATEGORY_INFO = {
+    "Major Core": { icon: "memory", blurb: "Required courses at the heart of your major" },
+    "Major Elective": { icon: "tune", blurb: "Upper-level electives that shape your specialization" },
+    "Supporting Coursework": { icon: "functions", blurb: "Math and statistics foundations for your major" },
+    "General Education": { icon: "public", blurb: "Breadth across writing, humanities, sciences, and social sciences" },
+    "Free Elective": { icon: "interests", blurb: "Courses of your choosing" },
+  };
+  const STATUS = {
+    eligible: { label: "Eligible now", cls: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+    eligible_after_current_term: { label: "Eligible after Fall 2026", cls: "bg-primary-container/10 text-primary border-primary-container/25" },
+    needs_prerequisites: { label: "Needs prerequisites", cls: "bg-error-container/30 text-error border-error/30" },
+  };
+  const CARD = "rounded-xl bg-surface-container-low border border-surface-container p-space-lg shadow-xl";
+  const ROW = "flex items-center justify-between gap-3 p-space-sm rounded-lg transition-colors";
+  const skillText = (skills) => skills.length ? esc(skills.join(", ")) : "";
+
+  // ---------------- Heading + summary cards ----------------
+  function renderSummary(dash, audit) {
+    const s = dash.student, c = audit.credits;
+    Shell.setStudent(s);
+    $("subtitle").textContent = `${s.major} · ${s.track === "General" ? "General track" : `${s.track} track`} · ${s.class_level} · ${s.entry_type}`;
+
+    const ok = s.academic_standing === "Good Standing";
+    $("card-grades").innerHTML = `
+      <div class="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary-container/10 pointer-events-none"></div>
+      <div>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="font-label-code text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">Grade Performance</span>
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${ok ? "bg-emerald-500/10 text-emerald-400" : "bg-error-container/30 text-error"}">
+            <span class="w-1.5 h-1.5 rounded-full ${ok ? "bg-emerald-400" : "bg-error"}"></span>${esc(s.academic_standing)}</span>
+        </div>
+        <div class="mt-space-md grid grid-cols-2 gap-space-md">
+          <div class="bg-surface-container rounded-lg p-space-sm border border-outline-variant/20">
+            <div class="text-headline-md font-extrabold text-on-surface">${s.gpa == null ? "—" : s.gpa.toFixed(2)}</div>
+            <div class="text-xs text-on-surface-variant">Cumulative GPA</div>
+          </div>
+          <div class="bg-surface-container rounded-lg p-space-sm border border-outline-variant/20">
+            <div class="text-headline-md font-extrabold text-secondary">${s.major_gpa == null ? "—" : s.major_gpa.toFixed(2)}</div>
+            <div class="text-xs text-on-surface-variant">Major GPA</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-space-md pt-space-sm border-t border-outline-variant/20 text-xs text-on-surface-variant">
+        ${s.gpa == null ? "First term — GPA appears after your first graded courses."
+          : `Recomputed from your transcript (W and IP excluded): <span class="font-semibold text-on-surface">${s.calculated_gpa.toFixed(2)}</span>`}
+      </div>`;
+
+    const pctDone = Math.min(100, (c.earned / c.required) * 100);
+    const pctNow = Math.min(100 - pctDone, (c.in_progress / c.required) * 100);
+    $("card-pace").innerHTML = `
+      <div>
+        <div class="flex items-center justify-between mb-space-xs">
+          <span class="font-label-code text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">Total Degree Pace</span>
+          <span class="text-headline-sm font-extrabold text-primary">${Math.round(pctDone)}%</span>
+        </div>
+        <div class="text-headline-md font-bold text-on-surface">${c.earned} <span class="text-sm font-normal text-on-surface-variant">of ${c.required} credits</span></div>
+        <div class="mt-space-sm w-full h-3 rounded-full bg-surface-container-highest overflow-hidden flex" aria-hidden="true">
+          <div class="bg-primary-container h-full shadow-[0_0_8px_rgba(255,179,0,0.6)]" style="width:${pctDone}%"></div>
+          <div class="bg-secondary/50 h-full" style="width:${pctNow}%"></div>
+        </div>
+        <div class="mt-space-sm flex flex-wrap items-center justify-between gap-2 text-[11px] text-on-surface-variant">
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-primary-container"></span>${c.earned} done</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-secondary/50"></span>${c.in_progress} enrolled (Fall '26)</span>
+          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm bg-surface-container-highest"></span>${c.remaining_after_current_term} left</span>
+        </div>
+      </div>
+      <div class="mt-space-sm pt-space-xs border-t border-outline-variant/20 text-xs text-on-surface-variant flex flex-wrap justify-between gap-2">
+        <span>Expected graduation: <span class="font-bold text-on-surface">${esc(s.expected_graduation_term)}</span></span>
+        <span>${c.upper_division_completed} upper-division credits</span>
+      </div>`;
+
+    const eligible = audit.remaining_required_courses.filter((r) => r.status !== "needs_prerequisites" && r.offered_next_term);
+    $("card-next").innerHTML = `
+      <div class="absolute -right-6 -bottom-6 w-28 h-28 rounded-full bg-primary-container/15 pointer-events-none"></div>
+      <div>
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded bg-primary-container text-on-primary text-[11px] font-bold uppercase tracking-wide">Next term · ${esc(audit.next_term)}</span>
+          <span class="material-symbols-outlined text-[20px] text-primary-container">event_upcoming</span>
+        </div>
+        <h2 class="text-title-lg font-bold text-on-surface mt-space-sm">${audit.remaining_required_courses.length ? `${audit.remaining_required_courses.length} required course${audit.remaining_required_courses.length === 1 ? "" : "s"} left` : "All required courses done or underway"}</h2>
+        <p class="text-xs text-on-surface-variant mt-space-xs">${eligible.length
+          ? `Offered in ${esc(audit.next_term)} and open to you: ${eligible.slice(0, 3).map((r) => `<span class="font-bold text-primary">${esc(r.course_id)}</span>`).join(", ")}${eligible.length > 3 ? ` +${eligible.length - 3} more` : ""}.`
+          : audit.remaining_required_courses.length ? `None of your remaining required courses are open to you in ${esc(audit.next_term)} yet — see prerequisites below.` : "Use electives to build toward your career goals."}</p>
+      </div>
+      <a class="mt-space-md inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-lg bg-primary-container text-on-primary text-xs font-bold hover:bg-secondary transition-colors no-print" href="student.html${App.apiQuery()}">
+        <span class="material-symbols-outlined text-[18px]">calendar_add_on</span>Plan ${esc(audit.next_term)} with the AI advisor
+      </a>`;
+  }
+
+  // ---------------- Requirement groups ----------------
+  function courseRow(course, state) {
+    const icon = state === "done"
+      ? `<span class="material-symbols-outlined text-primary-container text-[22px]" style="font-variation-settings:'FILL' 1">check_circle</span>`
+      : `<span class="material-symbols-outlined text-secondary text-[22px]">pending</span>`;
+    const right = state === "done"
+      ? `<span class="px-2 py-1 rounded bg-surface-container-highest text-on-surface text-xs font-bold whitespace-nowrap">Grade: ${esc(course.grade)}</span>`
+      : `<span class="px-2 py-1 rounded bg-surface-container-highest text-secondary text-xs font-bold whitespace-nowrap">In progress</span>`;
+    return `
+      <div class="${ROW} ${state === "done" ? "bg-surface-container hover:bg-surface-container-high" : "bg-secondary/10 hover:bg-secondary/15 border border-secondary/20"}">
+        <div class="flex items-center gap-space-md min-w-0">${icon}
+          <div class="min-w-0">
+            <div class="text-sm font-bold text-on-surface">${esc(course.course_id)} • ${esc(course.title)}</div>
+            <div class="text-[11px] text-on-surface-variant">${course.credits} credits • ${esc(course.term)}${course.skills.length ? ` • ${skillText(course.skills)}` : ""}</div>
+          </div>
+        </div>${right}
+      </div>`;
+  }
+
+  function renderRequirements(audit) {
+    const groups = audit.requirement_groups.map((g) => {
+      const info = CATEGORY_INFO[g.category] || { icon: "list", blurb: "" };
+      const rows = [...g.completed.map((c) => courseRow(c, "done")), ...g.in_progress.map((c) => courseRow(c, "now"))];
+      return `
+        <section class="${CARD}">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-md gap-space-sm">
+            <div>
+              <div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary text-[20px]">${info.icon}</span>
+                <h2 class="text-title-lg font-bold text-on-surface">${esc(g.category)}</h2></div>
+              <p class="text-xs text-on-surface-variant mt-0.5">${esc(info.blurb)}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-headline-sm font-bold text-primary">${g.completed_credits}</span>
+              <span class="text-xs text-on-surface-variant">credits done</span>
+              ${g.in_progress_credits ? `<span class="px-2 py-0.5 rounded bg-secondary/15 text-secondary text-[11px] font-bold">+${g.in_progress_credits} in progress</span>` : ""}
+            </div>
+          </div>
+          <div class="flex flex-col gap-space-xs">${rows.join("") || `<div class="text-xs text-on-surface-variant">No courses yet.</div>`}</div>
+        </section>`;
+    });
+
+    const remaining = audit.remaining_required_courses.map((r) => {
+      const st = STATUS[r.status];
+      return `
+        <div class="p-space-md rounded-lg bg-surface-container flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm border border-outline-variant/20">
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="material-symbols-outlined text-outline text-[20px]">radio_button_unchecked</span>
+              <span class="text-sm font-bold text-on-surface">${esc(r.course_id)} • ${esc(r.title)}</span>
+              <span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant text-[11px]">${r.credits} credits</span>
+            </div>
+            <p class="text-[11px] text-on-surface-variant mt-1 pl-7">${r.skills.length ? `Builds ${skillText(r.skills)} · ` : ""}${r.offered_next_term ? `Offered ${esc(audit.next_term)}` : `Usually ${esc(r.terms_offered.join("/"))}`}${r.missing_prerequisites.length ? ` · Needs ${esc(r.missing_prerequisites.join(", "))}` : ""}</p>
+          </div>
+          <span class="px-2.5 py-1 rounded border text-[11px] font-bold whitespace-nowrap self-start sm:self-center ${st.cls}">${st.label}</span>
+        </div>`;
+    }).join("");
+
+    const unsuccessful = audit.unsuccessful_attempts.length ? `
+      <section class="${CARD}">
+        <div class="flex items-center gap-space-sm pb-space-sm"><span class="material-symbols-outlined text-error text-[20px]">history</span>
+          <h2 class="text-title-lg font-bold text-on-surface">Withdrawn &amp; Unsuccessful Attempts</h2></div>
+        <p class="text-xs text-on-surface-variant pb-space-sm">W grades don't count toward GPA; F grades do. Passed retakes appear in the sections above.</p>
+        <div class="flex flex-col gap-space-xs">${audit.unsuccessful_attempts.map((c) => `
+          <div class="${ROW} bg-surface-container">
+            <div class="text-sm text-on-surface">${esc(c.course_id)} • ${esc(c.title)} <span class="text-[11px] text-on-surface-variant">· ${esc(c.term)}</span></div>
+            <span class="px-2 py-1 rounded text-xs font-bold ${c.grade === "F" ? "bg-error-container/30 text-error" : "bg-surface-container-highest text-on-surface-variant"}">${c.grade === "W" ? "Withdrew" : "Grade: F"}</span>
+          </div>`).join("")}</div>
+      </section>` : "";
+
+    $("requirements").innerHTML = `
+      ${groups.join("")}
+      <section class="${CARD}">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-md gap-space-sm">
+          <div>
+            <div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-secondary text-[20px]">checklist</span>
+              <h2 class="text-title-lg font-bold text-on-surface">Remaining Required Courses</h2></div>
+            <p class="text-xs text-on-surface-variant mt-0.5">Courses the catalog lists as required for ${esc(audit.major)} that you haven't taken yet</p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-surface-container-high text-xs font-bold text-on-surface">${audit.remaining_required_courses.length} remaining</span>
+        </div>
+        <div class="flex flex-col gap-space-sm">${remaining || `<div class="text-xs text-emerald-400">Every required course is complete or in progress.</div>`}</div>
+        ${audit.satisfied_by_prior_credit.length ? `<p class="text-[11px] text-on-surface-variant mt-space-md">Counted as satisfied by transfer or prior credit (you passed courses that require them): <span class="text-on-surface">${esc(audit.satisfied_by_prior_credit.join(", "))}</span></p>` : ""}
+      </section>
+      ${unsuccessful}`;
+  }
+
+  // ---------------- Skills ----------------
+  function skillGroup(courseIds) {
+    const subject = (courseIds[0] || "").replace(/\d.*$/, "");
+    if (subject === "CMSC" || subject === "IS") return "Computing & Information Systems";
+    if (subject === "MATH" || subject === "STAT") return "Mathematics & Statistics";
+    return "General Education & Other";
+  }
+
+  function renderSkills(dash) {
+    const order = ["Computing & Information Systems", "Mathematics & Statistics", "General Education & Other"];
+    const groups = {};
+    for (const s of dash.skills) (groups[skillGroup(s.courses)] ||= []).push(s);
+    const pill = (s) => s.courses.length > 1
+      ? `<span title="${esc(s.courses.join(", "))}" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-high text-on-surface text-xs border border-outline-variant/30"><span class="w-2 h-2 rounded-full bg-primary-container"></span>${esc(s.skill)} <span class="text-secondary font-bold">×${s.courses.length}</span></span>`
+      : `<span title="${esc(s.courses.join(", "))}" class="px-3 py-1 rounded-full bg-surface-container text-on-surface text-xs border border-outline-variant/20">${esc(s.skill)}</span>`;
+
+    const sections = order.filter((g) => groups[g]).map((g) => `
+      <div>
+        <div class="font-label-code text-[11px] uppercase tracking-wider text-on-surface-variant font-bold mb-space-xs">${esc(g)}</div>
+        <div class="flex flex-wrap gap-1.5">${groups[g].map(pill).join("")}</div>
+      </div>`);
+    const inProgress = dash.in_progress_skills.length ? `
+      <div class="pt-space-sm border-t border-outline-variant/20">
+        <div class="font-label-code text-[11px] uppercase tracking-wider text-secondary font-bold mb-space-xs">In progress this term</div>
+        <div class="flex flex-wrap gap-1.5">${dash.in_progress_skills.map((s) => `<span title="${esc(s.courses.join(", "))}" class="px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs border border-secondary/25">${esc(s.skill)}</span>`).join("")}</div>
+      </div>` : "";
+    $("skills").innerHTML = (sections.join("") || `<div class="text-xs">No completed coursework yet — your skills will appear here once your first courses are graded.</div>`) + inProgress;
+  }
+
+  // ---------------- Experience + credit mix ----------------
+  function renderExperience(dash) {
+    const s = dash.student;
+    const all = [...s.internships, ...s.activities];
+    const icon = { Internship: "work", "Co-op": "work", "Undergraduate Research": "biotech", Hackathon: "code", "Student Organization": "groups",
+      Tutoring: "school", "Campus Job": "badge", "Peer Mentor": "diversity_3", "Competitive Team": "emoji_events" };
+    $("experience").innerHTML = `
+      <h3 class="text-title-lg font-bold text-on-surface">${all.length ? `${all.length} activit${all.length === 1 ? "y" : "ies"} on record` : "No activities on record yet"}</h3>
+      <p class="text-xs text-on-surface-variant mt-space-xs">Research, internships, hackathons, and campus involvement from your student record${s.credential_count ? ` · plus ${s.credential_count} certification${s.credential_count === 1 ? "" : "s"}` : ""}.</p>
+      <div class="mt-space-md flex flex-col gap-space-xs">${all.map((x) => `
+        <div class="p-space-sm rounded-lg bg-surface-container flex items-center justify-between gap-3">
+          <div class="flex items-center gap-space-sm min-w-0">
+            <span class="material-symbols-outlined text-secondary text-[20px]">${icon[x.experience_type] || "star"}</span>
+            <div class="min-w-0"><div class="text-xs font-semibold text-on-surface truncate">${esc(x.name)}</div>
+              <div class="text-[11px] text-on-surface-variant truncate">${esc(x.experience_type)} · ${esc(x.organization)} · ${esc(x.term)}</div></div>
+          </div>
+          <span class="text-[11px] font-bold text-secondary whitespace-nowrap">${esc(x.outcome)}</span>
+        </div>`).join("") || `<div class="text-xs">Joining a club, hackathon, or research group is a great next step — ask the AI advisor where to start.</div>`}
+      </div>`;
+  }
+
+  function renderCreditMix(audit) {
+    const total = audit.requirement_groups.reduce((n, g) => n + g.completed_credits, 0);
+    if (!total) { $("credit-mix").innerHTML = `<div class="text-xs">No completed credits yet.</div>`; return; }
+    const colors = ["bg-primary-container", "bg-secondary", "bg-tertiary-container", "bg-outline"];
+    $("credit-mix").innerHTML = audit.requirement_groups.filter((g) => g.completed_credits).map((g, i) => {
+      const pct = (g.completed_credits / total) * 100;
+      return `
+        <div>
+          <div class="flex justify-between text-[11px] text-on-surface-variant mb-1"><span>${esc(g.category)}</span><span class="font-bold text-on-surface">${g.completed_credits} cr · ${Math.round(pct)}%</span></div>
+          <div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden"><div class="${colors[i % colors.length]} h-full" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join("") + `
+      <div class="mt-space-sm pt-space-sm border-t border-outline-variant/20 text-[11px] text-on-surface-variant">
+        ${total} credits completed at UMBC${audit.credits.transfer_credits ? ` · plus ${audit.credits.transfer_credits} transfer credits toward your degree` : ""}.
+      </div>`;
+  }
+
+  // ---------------- Load ----------------
+  async function load() {
+    try {
+      const [dash, audit] = await Promise.all([
+        api(`/api/dashboard/${encodeURIComponent(me)}`),
+        api(`/api/degree/${encodeURIComponent(me)}`),
+      ]);
+      renderSummary(dash, audit);
+      renderRequirements(audit);
+      renderSkills(dash);
+      renderExperience(dash);
+      renderCreditMix(audit);
+    } catch (err) {
+      $("page-error").textContent = err.message;
+      $("page-error").classList.remove("hidden");
+    }
+  }
+
+  $("print-btn").addEventListener("click", () => window.print());
+  $("ask-btn").href = "student.html" + App.apiQuery();
+  load();
+})();
+</script>
+</body></html>

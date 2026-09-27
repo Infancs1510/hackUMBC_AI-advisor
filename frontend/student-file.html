@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student File</title>
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="stylesheet" href="assets/transitions.css">
+</head>
+<body>
+<header class="topbar" id="topbar"></header>
+
+<div class="page col">
+  <div class="filters">
+    <a id="back" href="roster.html">← Student roster</a>
+    <span class="muted small">·</span>
+    <a id="dash" href="advisor.html">Advisor dashboard</a>
+    <span class="spacer" style="flex:1"></span>
+    <span class="small muted">Read-only view of the student's own dashboard</span>
+  </div>
+  <div class="col" id="detail"><div class="card empty">Loading…</div></div>
+</div>
+
+<script src="assets/common.js"></script>
+<script src="assets/dashboard.js"></script>
+<script>
+  const { $, esc, api, requireRole, renderTopbar, apiQuery } = App;
+  const session = requireRole("advisor");
+
+  async function show(campusId, career = null) {
+    $("detail").innerHTML = `<div class="card empty">Loading ${esc(campusId)}…</div>`;
+    try {
+      const q = career ? `?career=${encodeURIComponent(career)}` : "";
+      const d = await api(`/api/dashboard/${encodeURIComponent(campusId)}${q}`);
+      Dashboard.renderDashboard($("detail"), d, { onSelectCareer: (c) => show(campusId, c) });
+    } catch (err) {
+      if (err.body && err.body.is_alumnus) {
+        try { Dashboard.renderAlumni($("detail"), await api(`/api/alumni/${encodeURIComponent(campusId)}`)); return; }
+        catch (e) { err = e; }
+      }
+      $("detail").innerHTML = `<div class="card error">${esc(err.message)}</div>`;
+    }
+  }
+
+  function route() {
+    const id = decodeURIComponent(location.hash.slice(1)).toUpperCase();
+    if (!/^CID-\d{6}$/.test(id)) { location.replace("roster.html" + apiQuery()); return; }
+    document.title = `Student File · ${id}`;
+    show(id);
+  }
+
+  if (session) {
+    renderTopbar($("topbar"), session, "Student file");
+    $("back").href = "roster.html" + apiQuery();
+    $("dash").href = "advisor.html" + apiQuery();
+    window.addEventListener("hashchange", route);
+    route();
+  }
+</script>
+</body>
+</html>
