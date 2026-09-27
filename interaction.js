@@ -14,6 +14,10 @@ fetch("data/students_current.csv")
 
         const student = findStudent(data, test_id);
         if (!student) throw new Error("No current student matches " + test_id + ".");
+        const gpa = Number(student.cumulativeGpa);
+        document.getElementById("welcome-gpa").textContent =
+            student.cumulativeGpa && Number.isFinite(gpa) ? gpa.toFixed(2) : "Not available";
+        document.getElementById("welcome-class-standing").textContent = student.classLevel || "Not available";
 
         return loadAlumniData(student)
             .then(salary => {
@@ -42,6 +46,8 @@ fetch("data/students_current.csv")
                 const student = {
                     major: columns[3],
                     track: columns[4],
+                    classLevel: columns[7],
+                    cumulativeGpa: columns[14],
                     residency: columns[8],
                     creditsEarned: columns[12],
                     creditsRequired: columns[13],
