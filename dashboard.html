@@ -3,6 +3,8 @@
 <html>
 
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <title>Advise UMBC</title>
         <link rel="stylesheet" href="style.css">
@@ -10,6 +12,25 @@
     </head>
 
     <body>
+
+        <header class="site-header">
+            <div class="header-brand">
+                <!-- Official logo source: https://umbc.edu/ -->
+                <img class="header-logo" src="umbc-logo.png" alt="UMBC" width="196" height="46">
+                <div class="header-title">Career Advisor</div>
+                <span class="header-portal-label">Academic &amp; Career Portal</span>
+            </div>
+            <div class="header-actions">
+                <span class="header-campus-id">Campus ID: <strong id="header-campus-id">--</strong></span>
+                <span class="header-student-label">Student Portal</span>
+                <button class="sign-out-button" type="button">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                        <path d="M9 5H4v14h5M10 12h10m-4-4 4 4-4 4"></path>
+                    </svg>
+                    Sign out
+                </button>
+            </div>
+        </header>
 
         <div class = "total-page">
 
@@ -19,105 +40,121 @@
                     <h1>Welcome, User!</h1>
                 </div>
 
-                <p>Major: </p>
-                <p>Track: </p>
-
             </div>
 
             <div class = "first-row">
 
                 <div class = "left-side">
                     
-                    <div class="ROI">
+        <div class="ROI">
 
-                        <div class="roi-header">
-                            <h2>ROI Calculator</h2>
-                            <p>
-                            See the ROI of your path in college based on real UMBC alumni data.
-                            </p>
-                            <button class = "options-button">
-                                Options
-                            </button>
-                        </div>
+            <div class="roi-header">
+                <h2>ROI Calculator</h2>
+                <p>
+                    See the ROI of your path in college based on real UMBC alumni data.
+                </p>
 
-                        <div class="roi-info">
+            </div>
 
-                            <div class="roi-item">
-                                <p>Tuition</p>
-                                <h3 id="tuition">$12,000 / year</h3>
-                            </div>
+            <div class="roi-info">
 
-                            <div class="roi-item">
-                                <p>Degree</p>
-                                <h3 id="degree">Computer Science</h3>
-                            </div>
-
-                            <div class="roi-item">
-                                <p>Track</p>
-                                <h3 id="track">Software Engineering</h3>
-                            </div>
-
-                            <div class="roi-item">
-                                <p>Financial Aid</p>
-                                <h3 id="aid">$4,500 / year</h3>
-                            </div>
-
-                            <div class="roi-item">
-                                <p>Years to Complete</p>
-                                <h3 id="years">4 Years</h3>
-                            </div>
-
-                            <div class="roi-item">
-                                <p>Living Expenses</p>
-                                <h3 id="living-expenses">$10,000 / year</h3>
-                            </div>
-
-                        </div>
-
-
-                        <div class="roi-results">
-
-                            <div class="salary-result">
-                                <p>Estimated Starting Salary</p>
-                                <h2 id="estimated-salary">$79,000</h2>
-                                <span>Based on UMBC alumni outcomes</span>
-                            </div>
-
-                            <div class="break-even-result">
-                                <p>College Investment Outlook</p>
-                                <h2 id="break-even-status">Fast Break-Even</h2>
-                                <p id="break-even-message">
-                                    Your estimated salary puts you on track to recover
-                                    your college expenses relatively quickly.
-                                </p>
-                            </div>
-
-                        </div>
-
+                    <div class="roi-item">
+                        <p>Tuition Paid</p>
+                        <h3 id="tuition">--</h3>
                     </div>
 
-                    <div class = "career-progress">
+                    <div class="roi-item">
+                        <p>Degree</p>
+                        <h3 id="degree">--</h3>
+                    </div>
 
-                    <p>Hello</p>
+                    <div class="roi-item">
+                        <p>Track</p>
+                        <h3 id="track">--</h3>
+                    </div>
 
+                    <div class="roi-item">
+                        <p>Years to Complete</p>
+                        <h3 id="years">--</h3>
+                    </div>
+
+                    <div class="roi-item">
+                        <p>Estimated Salary</p>
+                        <h3 id="estimated-salary">--</h3>
+                    </div>
+
+                    <div class="roi-item">
+                        <p>Salary-To-Cost Ratio</p>
+                        <h3 id="estimated-roi">--</h3>
+                        <small class="roi-disclaimer">
+                            Estimate based on alumni salary data and projected tuition costs.
+                        </small>
                     </div>
 
                 </div>
-                
-                <div class = "chatbot">
-                    
-                    <p>Hello</p>
-                
+
+            </div>
+
+                    <section class="career-progress" aria-labelledby="career-paths-heading">
+                        <h2 id="career-paths-heading">Career Paths</h2>
+                        <p id="career-paths-summary" role="status">Loading your alumni career paths...</p>
+                        <p class="career-note">First-job outcomes from the supplied synthetic alumni dataset.</p>
+                        <div class="career-columns">
+                            <div>
+                                <h3>Possible careers</h3>
+                                <ul id="career-paths-list" class="career-list"></ul>
+                            </div>
+                            <div>
+                                <h3>Companies alumni joined</h3>
+                                <ul id="career-companies-list" class="career-list"></ul>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
+            
+            <div class="chatbot">
+
+                <div class="chatbot-header">
+                    <div>
+                        <h2>AI Advisor</h2>
+                        <p>Ask about your academic or career path</p>
+                    </div>
+
+                    <span class="status-dot"></span>
+                </div>
+
+                <div class="chat-messages">
+
+                    <div class="bot-message">
+                        <p>
+                            Hi! I'm your AI advisor. Ask me about your degree,
+                            career options, salary, or academic progress.
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="chat-input">
+
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="Ask your advisor..."
+                    >
+
+                    <button id="send-message">Send</button>
+
+                </div>
+
+            </div>
 
             </div>
 
 
         </div>
 
-
-
-
+        <script src="careerpaths.js"></script>
         <script src="interaction.js"></script>
 
     </body>

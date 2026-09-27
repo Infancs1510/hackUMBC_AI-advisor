@@ -136,6 +136,32 @@ body {
     font-size: 17px;
 }
 
+/* ROI Calc Button */
+#calculate-roi {
+    grid-column: span 2;
+
+    background-color: #222;
+    color: white;
+    border: 2px solid #222;
+    border-radius: 8px;
+    padding: 10px;
+
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+#calculate-roi:hover {
+    background-color: #444;
+}
+
+#calculate-roi:active {
+    transform: scale(0.97);
+}
 
 /* ROI RESULTS */
 
@@ -175,20 +201,103 @@ body {
 
 .chatbot {
     background-color: white;
-
-    border: 2px solid #dcdcdc;
+    border: 2px solid #ddd;
     border-radius: 15px;
 
-    padding: 20px;
+    height: 600px;
 
-    height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
 
     position: sticky;
-    top: 40px;
-
+    top: 30px;
     align-self: start;
 }
 
+.chatbot-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chatbot-header h2 {
+    margin: 0;
+}
+
+.chatbot-header p {
+    margin: 5px 0 0 0;
+    font-size: 13px;
+    color: #777;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background-color: #22c55e;
+    border-radius: 50%;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.bot-message {
+    background-color: #f1f1f1;
+    padding: 12px 15px;
+    border-radius: 12px;
+
+    max-width: 80%;
+    font-size: 14px;
+}
+
+.bot-message p {
+    margin: 0;
+}
+
+.chat-input {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+
+    outline: none;
+}
+
+.chat-input input:focus {
+    border-color: #555;
+}
+
+.chat-input button {
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #222;
+    color: white;
+
+    cursor: pointer;
+}
+
+.chat-input button:hover {
+    background-color: #444;
+}
 
 /* ---------- CAREER PROGRESS ---------- */
 
@@ -200,6 +309,7 @@ body {
 }
 
 .career-progress {
+    margin-top: 15px;
     background-color: white;
 
     border: 2px solid #dcdcdc;
@@ -208,4 +318,229 @@ body {
     padding: 25px;
 
     min-height: 400px;
+}
+
+.career-progress h2 { margin-top: 0; }
+.career-note { color: #666; font-size: 13px; }
+.career-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.career-list { list-style: none; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; }
+.career-list li { background: #f7f7f7; border-radius: 10px; padding: 14px; margin-bottom: 10px; overflow-wrap: anywhere; }
+.career-list span { display: block; margin-top: 6px; color: #666; font-size: 13px; }
+.left-side { min-width: 0; }
+@media (max-width: 1000px) {
+    body { padding: 24px; }
+    .first-row { grid-template-columns: 1fr; }
+    .chatbot { position: static; }
+}
+@media (max-width: 600px) {
+    .career-columns { grid-template-columns: 1fr; }
+}
+
+/* ---------- UMBC DARK THEME ---------- */
+/* Palette only: existing layout, sizing, and button styles stay intact. */
+:root {
+    --page-bg: #0d111a;
+    --panel-bg: #181c27;
+    --card-bg: #1f222c;
+    --input-bg: #0b0e16;
+    --theme-border: #2d2c33;
+    --text-primary: #dedeea;
+    --text-muted: #bdb09d;
+    --accent-gold: #ffb600;
+    --accent-warm: #ffd18a;
+    --status-green: #2dce98;
+}
+
+body {
+    background-color: var(--page-bg);
+    color: var(--text-primary);
+}
+
+.intro-box,
+.ROI,
+.career-progress,
+.chatbot {
+    background-color: var(--panel-bg);
+    border-color: var(--theme-border);
+}
+
+.intro-box h1,
+.roi-header h2,
+.career-progress > h2 {
+    color: var(--accent-gold);
+}
+
+.intro-box p,
+.roi-header p,
+.roi-item p,
+.roi-disclaimer,
+.salary-result p,
+.break-even-result p,
+.chatbot-header p,
+#career-paths-summary,
+.career-note,
+.career-list span {
+    color: var(--text-muted);
+}
+
+.roi-item,
+.salary-result,
+.break-even-result,
+.career-list li {
+    background-color: var(--card-bg);
+    box-shadow: inset 0 0 0 1px var(--theme-border);
+}
+
+.roi-item h3,
+.salary-result h2,
+.break-even-result h2,
+.career-columns h3 {
+    color: var(--accent-warm);
+}
+
+.career-list strong,
+.chatbot-header h2 {
+    color: var(--text-primary);
+}
+
+.chatbot-header,
+.chat-input {
+    border-color: var(--theme-border);
+}
+
+.bot-message {
+    background-color: #272528;
+    color: var(--accent-warm);
+    box-shadow: inset 0 0 0 1px var(--theme-border);
+}
+
+.user-message {
+    color: var(--text-primary);
+}
+
+.status-dot {
+    background-color: var(--status-green);
+    box-shadow: 0 0 10px #2dce9826;
+}
+
+.chat-input input {
+    background-color: var(--input-bg);
+    border-color: var(--theme-border);
+    color: var(--text-primary);
+    caret-color: var(--accent-gold);
+}
+
+.chat-input input::placeholder {
+    color: var(--text-muted);
+}
+
+.chat-input input:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 2px #ffb60026;
+}
+
+.career-list,
+.chat-messages {
+    scrollbar-color: #57505a var(--panel-bg);
+}
+
+/* ---------- TOP HEADER ---------- */
+.site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+    min-height: 88px;
+    margin: -40px -150px 32px;
+    padding: 20px 30px;
+    background-color: #0b0e16;
+    border-bottom: 1px solid var(--theme-border);
+}
+
+.header-brand,
+.header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.header-logo {
+    display: block;
+    width: 196px;
+    height: auto;
+}
+
+.header-title {
+    padding-left: 20px;
+    border-left: 1px solid var(--theme-border);
+    color: var(--text-primary);
+    font-size: 21px;
+    font-weight: 600;
+}
+
+.header-portal-label {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    color: var(--accent-warm);
+    font-size: 14px;
+}
+
+.header-student-label {
+    color: var(--text-muted);
+    font-family: Consolas, monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.header-campus-id {
+    padding: 10px 16px;
+    border: 1px solid var(--theme-border);
+    border-radius: 6px;
+    background-color: #252832;
+    color: var(--text-muted);
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.header-campus-id strong {
+    color: var(--accent-warm);
+}
+
+.sign-out-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 17px;
+    border: 1px solid var(--theme-border);
+    border-radius: 6px;
+    background-color: var(--card-bg);
+    color: var(--text-muted);
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+.sign-out-button svg { color: #cf9d91; }
+.sign-out-button:hover { border-color: var(--accent-warm); color: var(--accent-warm); }
+.sign-out-button:focus-visible { outline: 2px solid var(--accent-gold); outline-offset: 3px; }
+
+@media (max-width: 1000px) {
+    .site-header { margin: -24px -24px 24px; padding: 18px 24px; }
+}
+
+@media (max-width: 600px) {
+    .header-brand { gap: 12px; }
+    .header-logo { width: 150px; }
+    .header-title { padding-left: 12px; font-size: 18px; }
+    .header-actions { width: 100%; justify-content: space-between; }
 }

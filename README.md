@@ -582,8 +582,8 @@ Example:
 
 ```env
 GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-3.8-flash
-GEMINI_FALLBACK_MODEL=gemini-3.5-flash
+GEMINI_MODEL=gemini-2.0-flash
+GEMINI_FALLBACK_MODEL=gemini-1.5-flash
 BACKBOARD_API_KEY=your_key_here
 
 FRONTEND_ORIGIN=http://localhost:3000
@@ -592,8 +592,8 @@ FRONTEND_ORIGIN=http://localhost:3000
 | Variable | Default | Notes |
 | --- | --- | --- |
 | `GEMINI_API_KEY` | — | Without it, the advisor returns deterministic summaries. |
-| `GEMINI_MODEL` | `gemini-3.8-flash` | Main model. |
-| `GEMINI_FALLBACK_MODEL` | `gemini-3.5-flash` | Used when the main model returns 429 (quota) or 500/503. Leave it empty to disable. |
+| `GEMINI_MODEL` | `gemini-2.0-flash` | Main model. |
+| `GEMINI_FALLBACK_MODEL` | `gemini-1.5-flash` | Used when the main model returns 429 (quota) or 500/503. Leave it empty to disable. |
 | `BACKBOARD_API_KEY` | — | Without it, the advisor runs without memory. |
 | `FRONTEND_ORIGIN` | `http://localhost:3000` | Comma-separated list of allowed CORS origins. |
 | `DATA_DIR` | `./data` | Folder containing the six CSVs. |

@@ -14,9 +14,9 @@ class Settings(BaseSettings):
     data_dir: Path = BASE_DIR / "data"
 
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    gemini_model: str = "gemini-2.0-flash"
     # Used when the main model is over quota (429) or unavailable (500/503). Empty disables it.
-    gemini_fallback_model: str | None = "gemini-3.5-flash"
+    gemini_fallback_model: str | None = "gemini-1.5-flash"
     gemini_base_url: str = "https://generativelanguage.googleapis.com/v1beta"
     gemini_timeout_seconds: float = 30.0
 

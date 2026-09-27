@@ -3,6 +3,7 @@ import json
 from app.ai.backboard import BackboardError
 from app.ai.gemini import GeminiError
 from app.ai.prompts import heuristic_memories, is_allowed_memory, parse_extracted_memories
+from app.config import Settings
 from app.models.advisor import MemoryItem
 from tests.conftest import ALUMNUS, FIRST_TERM, TRANSFER_JUNIOR, FakeGemini, FakeMemory
 
@@ -63,6 +64,12 @@ def test_careers(base_client):
 def test_cors_allows_frontend_origin(base_client):
     response = base_client.get("/api/health", headers={"Origin": "http://localhost:3000"})
     assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+
+def test_default_gemini_models_are_valid():
+    settings = Settings(_env_file=None)
+    assert settings.gemini_model == "gemini-2.0-flash"
+    assert settings.gemini_fallback_model == "gemini-1.5-flash"
 
 
 # --- Advisor ---------------------------------------------------------------------------
